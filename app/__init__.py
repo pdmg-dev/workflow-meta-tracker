@@ -1,7 +1,9 @@
 # app/__init__.py
 from flask import Flask
-from .extensions import db, bcrypt, migrate, login_manager
+
+from .blueprints import auth_bp
 from .config import get_config
+from .extensions import bcrypt, db, login_manager, migrate
 
 
 def create_app():
@@ -13,5 +15,8 @@ def create_app():
     bcrypt.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
+
+    # Register blueprints
+    app.register_blueprint(auth_bp)
 
     return app
