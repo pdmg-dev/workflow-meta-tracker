@@ -10,8 +10,11 @@ instance/
 
 # Environment variables
 .env
+.flaskenv
 
+# Virtual environment
 .venv/
+
 
 # VS Code settings
 .vscode/
