@@ -16,6 +16,9 @@ instance/
 # VS Code settings
 .vscode/
 
+# Linter cache
+.ruff_cache/
+
 # Logs
 *.log
 
