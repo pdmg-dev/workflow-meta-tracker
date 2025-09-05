@@ -1,7 +1,7 @@
 # app/blueprints/users/models.py
 from flask_login import UserMixin
 
-from app.extensions import bcrypt, db
+from app.extensions import bcrypt, db, login_manager
 
 
 class User(UserMixin, db.Model):
@@ -17,3 +17,8 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password_hash, password)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, int(user_id))
