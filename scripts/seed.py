@@ -1,4 +1,5 @@
 from app.blueprints.auth.models import AuthIdentity
+from app.blueprints.documents.models import DocumentType
 from app.blueprints.users.models import User
 from app.extensions import db
 
@@ -6,8 +7,8 @@ from app.extensions import db
 def seed_data():
     # Admin User
     existing_identity = db.session.execute(
-        db.select(AuthIdentity).filter_by(username="admin")
-    ).scalar_one_or_none()
+        db.session.query(AuthIdentity).filter_by(username="admin")
+    ).first()
 
     if not existing_identity:
         admin_user = User(full_name="Admin", role="admin", is_active=True)
@@ -20,8 +21,8 @@ def seed_data():
 
     # Staff User
     existing_identity = db.session.execute(
-        db.select(AuthIdentity).filter_by(username="staff")
-    ).scalar_one_or_none()
+        db.session.query(AuthIdentity).filter_by(username="staff")
+    ).first()
 
     if not existing_identity:
         staff_user = User(full_name="Staff", role="staff", is_active=True)
@@ -32,4 +33,19 @@ def seed_data():
         staff_identity.set_password("staff")
         db.session.add(staff_identity)
 
+    db.session.commit()
+
+    # Document Types
+    document_types = {
+        "DBV": "Disbursement Voucher",
+        "PYR": "Payroll",
+        "PO": "Purchase Order",
+        "PR": "Purchase Request",
+        "OR": "Official Receipt",
+        "LQR": "Liquidation Reports",
+    }
+
+    for code, name in document_types.items():
+        if not db.session.query(DocumentType).filter_by(code=code).first():
+            db.session.add(DocumentType(name=name, code=code))
     db.session.commit()
