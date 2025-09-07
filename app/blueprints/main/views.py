@@ -10,5 +10,5 @@ from . import main_bp
 @main_bp.route("/")
 def index():
     if current_user.is_authenticated:
-        return redirect(get_dashboard_url)
+        return redirect(get_dashboard_url())
     return redirect(url_for("auth.login"))
