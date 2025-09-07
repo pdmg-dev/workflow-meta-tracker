@@ -1,39 +1,50 @@
 <!--app/templates/base.html-->
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{% block title %}Paper Trail{% endblock %}</title>
-    </head>
-    <body>
-        <header>
-            <nav>
-                <h2>Paper Trail</h2>
-                {% if current_user.is_authenticated %}
-                    <form action="{{ url_for('auth.logout') }}" method="post">
-                        <button type="submit">Logout</button>
-                    </form>
-                {% endif %}
-            </nav>
-        </header>
-
-        <main>
-            <div class="container">{% block content %}{% endblock %}</div>
-
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <ul class="flash-messages">
-                        {% for category, message in messages %}
-                            <li class="flash {{ category }}">{{ message }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            {% endwith %}
-        </main>
-
-        <footer>
-            <!--TODO: Footer-->
-        </footer>
-    </body>
+  <!--HEAD-->
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Paper Trail{% endblock %}</title>
+  </head>
+  <!--BODY-->
+  <body>
+    <!--HEADER & NAV-->
+    <header>
+      <nav>
+        <h1>Paper Trail</h1>
+        {% if current_user.is_authenticated %}
+          <ul>
+            <li><a href="{{ url_for('documents.create_document') }}">Create New</a></li>
+            <li><a href="{{ url_for('documents.view_all_documents') }}">View All Documents</a></li>
+            <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+          </ul>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}">Login</a>
+        {% endif %}
+      </nav>
+    </header>
+    <!--MAIN-->
+    <main>
+      <!--CONTAINER-->
+      <div class="container">
+        {% block content %}
+        {% endblock %}
+      </div>
+      <!--FLASH-->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <ul class="flash-messages">
+            {% for category, message in messages %}
+              <li class="flash {{ category }}">{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
+    </main>
+    <!--FOOTER-->
+    <footer>
+      <!--TODO: Create footer later-->
+    </footer>
+  </body>
 </html>
