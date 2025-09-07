@@ -17,10 +17,10 @@
           <ul>
             <li><a href="{{ url_for('documents.create_document') }}">Create New</a></li>
             <li><a href="{{ url_for('documents.view_all_documents') }}">View All Documents</a></li>
-            <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+            <form action="{{ url_for('auth.logout') }}" method="post">
+              <button type="submit">Logout</button>
+            </form>
           </ul>
-        {% else %}
-          <a href="{{ url_for('auth.login') }}">Login</a>
         {% endif %}
       </nav>
     </header>
