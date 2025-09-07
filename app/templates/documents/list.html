@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}All Documents{% endblock %}
+{% block content %}
+  <table border="1" cellpadding="6" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Document No.</th>
+        <th>Type</th>
+        <th>Origin</th>
+        <th>Payee</th>
+        <th>Status</th>
+        <th>Date Received</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for doc in documents %}
+        <tr>
+          <td>{{ doc.document_type.name }}</td>
+          <td>{{ doc.origin }}</td>
+          <td>{{ doc.payee }}</td>
+          <td>{{ doc.status.name if doc.status else "—" }}</td>
+          <td>{{ doc.date_received.strftime('%Y-%m-%d') }}</td>
+          {#
+          <td>
+            <a href="{{ url_for('documents.view_document', document_id=doc.id) }}">View</a> |
+            <a href="{{ url_for('documents.edit_document', document_id=doc.id) }}">Edit</a> |
+            <a href="{{ url_for('documents.delete_document', document_id=doc.id) }}">Delete</a>
+          </td>
+          #}
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="6" style="text-align: center;">No documents found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

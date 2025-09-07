@@ -1,0 +1,56 @@
+<!--app/templates/documents/form.html-->
+{% extends 'base.html' %}
+{% block title %}New Document{% endblock %}
+{% block content %}
+    <h3>New Document</h3>
+    <form action="{{ url_for('documents.create_document') }}" method="post">
+        {{ form.hidden_tag() }}
+
+        <div>
+            {{ form.document_type.label }}
+            {{ form.document_type }}
+        </div>
+
+        <div>
+            {{ form.document_number.label }}
+            {{ form.document_number }}
+        </div>
+
+        <div>
+            {{ form.payee.label }}
+            {{ form.payee }}
+        </div>
+
+        <div>
+            {{ form.origin.label }}
+            {{ form.origin }}
+        </div>
+
+        <div>
+            {{ form.particulars.label }}
+            {{ form.particulars }}
+        </div>
+
+        <div>
+            {{ form.amount.label }}
+            {{ form.amount }}
+        </div>
+
+        <div>
+            {{ form.date_received.label }}
+            {{ form.date_received }}
+        </div>
+
+        <!--Save-->
+        <div>{{ form.submit }}</div>
+
+        <!--Cancel-->
+        {% if current_user.is_authenticated %}
+            {% if current_user.role == "admin" %}
+                <a href="{{ url_for('admin.dashboard') }}">Cancel</a>
+            {% else %}
+                <a href="{{ url_for('staff.dashboard') }}">Cancel</a>
+            {% endif %}
+        {% endif %}
+    </form>
+{% endblock %}
