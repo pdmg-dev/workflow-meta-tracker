@@ -3,7 +3,7 @@ from flask import flash, redirect, render_template, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
 from app.extensions import db
-from app.utils.routing import redirect_to_dashboard
+from app.utils.routing import get_dashboard_url
 
 from . import auth_bp
 from .forms import LoginForm
@@ -13,7 +13,7 @@ from .models import AuthIdentity
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect_to_dashboard(current_user)
+        return redirect(get_dashboard_url())
 
     form = LoginForm()
 
@@ -26,7 +26,7 @@ def login():
         if identity and identity.check_password(form.password.data):
             login_user(identity)
             flash("Logged in successfully.", "success")
-            return redirect_to_dashboard(identity)
+            return redirect(get_dashboard_url())
         else:
             flash("Invalid username or password.", "error")
     return render_template("auth/login.html", form=form)
