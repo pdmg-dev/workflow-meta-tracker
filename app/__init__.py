@@ -6,6 +6,7 @@ from scripts.seed import seed_data
 from .blueprints import admin_bp, auth_bp, document_bp, main_bp, staff_bp
 from .config import get_config
 from .extensions import bcrypt, db, login_manager, migrate
+from .utils.routing import get_dashboard_url
 
 
 def create_app():
@@ -27,6 +28,9 @@ def create_app():
     app.register_blueprint(staff_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(document_bp)
+
+    # Global functions
+    app.jinja_env.globals["url_for_dashboard"] = get_dashboard_url
 
     # Application Context
     with app.app_context():

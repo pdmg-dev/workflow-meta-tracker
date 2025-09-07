@@ -1,13 +1,16 @@
 # app/utils/routing.py
-from flask import flash, redirect, url_for
+from flask import url_for
+from flask_login import current_user
 
 
-def redirect_to_dashboard(identity):
-    match identity.role:
+def get_dashboard_url():
+    if not current_user.is_authenticated:
+        return url_for("auth.login")
+
+    match current_user.role:
         case "admin":
-            return redirect(url_for("admin.dashboard"))
+            return url_for("admin.dashboard")
         case "staff":
-            return redirect(url_for("staff.dashboard"))
+            return url_for("staff.dashboard")
         case _:
-            flash("Unknown role.")
-            return redirect(url_for("auth.login"))
+            return url_for("auth.login")
