@@ -6,11 +6,14 @@ from app.extensions import db
 
 class Document(db.Model):
     __tablename__ = "documents"
-    # __table_args__ = (db.UniqueConstraint("document_type_id",
-    # "reference_number", name="uq_doc_type_ref"),)
+    __table_args__ = (
+        db.UniqueConstraint(
+            "document_type_id", "reference_number", name="uq_doc_type_ref"
+        ),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
-    # reference_number = db.Column(db.String(50), unique=True, nullable=False)
+    reference_number = db.Column(db.String(50), unique=True, nullable=False)
     document_number = db.Column(db.String(50), unique=True, nullable=True)
     payee = db.Column(db.String(120), nullable=False)
     origin = db.Column(db.String(120), nullable=False)

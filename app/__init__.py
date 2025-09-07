@@ -32,6 +32,9 @@ def create_app():
     # Global functions
     app.jinja_env.globals["url_for_dashboard"] = get_dashboard_url
 
+    # Register event listeners
+    from .utils import metadata  # noqa: F401
+
     # Application Context
     with app.app_context():
         db.create_all()

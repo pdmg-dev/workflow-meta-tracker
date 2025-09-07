@@ -4,8 +4,7 @@
   <table border="1" cellpadding="6" cellspacing="0">
     <thead>
       <tr>
-        <th>Document No.</th>
-        <th>Type</th>
+        <th>Reference No.</th>
         <th>Origin</th>
         <th>Payee</th>
         <th>Status</th>
@@ -16,7 +15,7 @@
     <tbody>
       {% for doc in documents %}
         <tr>
-          <td>{{ doc.document_type.name }}</td>
+          <td>{{ doc.reference_number }}</td>
           <td>{{ doc.origin }}</td>
           <td>{{ doc.payee }}</td>
           <td>{{ doc.status.name if doc.status else "—" }}</td>
