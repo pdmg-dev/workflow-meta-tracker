@@ -10,20 +10,7 @@
   <!--BODY-->
   <body>
     <!--HEADER & NAV-->
-    <header>
-      <nav>
-        <h1>Paper Trail</h1>
-        {% if current_user.is_authenticated %}
-          <ul>
-            <li><a href="{{ url_for('documents.create_document') }}">Create New</a></li>
-            <li><a href="{{ url_for('documents.view_all_documents') }}">View All Documents</a></li>
-            <form action="{{ url_for('auth.logout') }}" method="post">
-              <button type="submit">Logout</button>
-            </form>
-          </ul>
-        {% endif %}
-      </nav>
-    </header>
+    <header>{% include 'nav.html' %}</header>
     <!--MAIN-->
     <main>
       <!--CONTAINER-->
