@@ -33,7 +33,7 @@ def create_app():
     app.jinja_env.globals["url_for_dashboard"] = get_dashboard_url
 
     # Register event listeners
-    from .utils import metadata  # noqa: F401
+    from .listeners import ref_number  # noqa: F401
 
     # Application Context
     with app.app_context():

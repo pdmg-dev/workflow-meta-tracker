@@ -1,4 +1,4 @@
-# app/utils/metadata.py
+# app/listeners/ref_number.py
 from datetime import date
 
 from sqlalchemy import event
@@ -9,7 +9,6 @@ from app.blueprints.documents import models
 
 @event.listens_for(models.Document, "before_insert")
 def generate_reference_number(mapper, connection, target):
-    print("Listener triggered for:", target)
     if target.reference_number:
         return
 
