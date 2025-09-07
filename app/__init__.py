@@ -6,7 +6,7 @@ from scripts.seed import seed_data
 from .blueprints import admin_bp, auth_bp, document_bp, main_bp, staff_bp
 from .config import get_config
 from .extensions import bcrypt, db, login_manager, migrate
-from .utils.routing import get_dashboard_url
+from .utils.navigation import get_dashboard_url
 
 
 def create_app():
