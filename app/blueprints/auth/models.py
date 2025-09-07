@@ -21,3 +21,7 @@ class AuthIdentity(UserMixin, db.Model):
         return bcrypt.check_password_hash(self.password_hash, password)
 
     user = db.relationship("User", backref="auth_identity", lazy="joined")
+
+    @property
+    def role(self):
+        return self.user.role if self.user else None
