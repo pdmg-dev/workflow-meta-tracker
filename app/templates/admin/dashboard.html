@@ -2,6 +2,7 @@
 {% extends 'base.html' %}
 {% block title %}Admin Dashboard{% endblock %}
 {% block content %}
-    <h2>Dashboard</h2>
+    <h3>Admin Dashboard</h3>
     <p>Sample contents.</p>
+    <a href="{{ url_for('documents.create_document') }}">New Document</a>
 {% endblock %}
