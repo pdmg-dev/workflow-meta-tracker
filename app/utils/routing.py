@@ -2,8 +2,8 @@
 from flask import flash, redirect, url_for
 
 
-def redirect_to_dashboard(user):
-    match user.role:
+def redirect_to_dashboard(identity):
+    match identity.role:
         case "admin":
             return redirect(url_for("admin.dashboard"))
         case "staff":

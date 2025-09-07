@@ -26,10 +26,9 @@ def login():
         if identity and identity.check_password(form.password.data):
             login_user(identity)
             flash("Logged in successfully.", "success")
-            return redirect_to_dashboard(identity.user)
+            return redirect_to_dashboard(identity)
         else:
             flash("Invalid username or password.", "error")
-
     return render_template("auth/login.html", form=form)
 
 
