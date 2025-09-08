@@ -8,13 +8,21 @@
   <td>{{ doc.date_received.strftime('%Y-%m-%d') }}</td>
   <td>{{ doc.document_type.name }}</td>
   <td onclick="event.stopPropagation()">
-    <form
-      method="POST"
-      action="{{ url_for('documents.update_status', doc_id=doc.id) }}"
-      onclick="event.stopPropagation()"
-    >
+    {{ doc.status.name }}
+    <button type="button" onclick="toggleForm({{ doc.id }})">Update</button>
+  </td>
+</tr>
+
+<tr id="form-row-{{ doc.id }}" style="display: none;">
+  <td colspan="8" style="background-color: #f9f9f9;">
+    <form method="POST" action="{{ url_for('documents.update_status', doc_id=doc.id) }}">
       {{ form[doc.id].hidden_tag() }}
-      {{ form[doc.id].status(onchange="this.form.submit()") }}
+      <label>Status:</label>
+      {{ form[doc.id].status }}
+      <label>Note (optional):</label>
+      <input type="text" name="note" placeholder="Add a note..." />
+      <button type="submit">Save</button>
+      <button type="button" onclick="toggleForm({{ doc.id }})">Cancel</button>
     </form>
   </td>
 </tr>
