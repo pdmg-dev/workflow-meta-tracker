@@ -26,7 +26,7 @@ class Document(db.Model):
     document_type_id = db.Column(
         db.Integer, db.ForeignKey("document_types.id")
     )
-    # status_id = db.Column(db.Integer, db.ForeignKey("statuses.id"))
+    status_id = db.Column(db.Integer, db.ForeignKey("statuses.id"))
     created_by = db.Column(db.Integer, db.ForeignKey("users.id"))
     changed_by = db.Column(db.Integer, db.ForeignKey("users.id"))
 
@@ -55,8 +55,8 @@ class Document(db.Model):
         backref="changed_documents",
         lazy="joined",
     )
-    # status = db.relationship("Status", backref="documents", lazy="joined")
-    # status_history = db.relationship("StatusHistory", backref="document")
+    status = db.relationship("Status", backref="documents", lazy="joined")
+    status_history = db.relationship("StatusHistory", backref="document")
 
 
 class DocumentType(db.Model):
