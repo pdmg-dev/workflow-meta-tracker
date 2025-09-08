@@ -7,8 +7,14 @@
   <td>{{ doc.amount }}</td>
   <td>{{ doc.date_received.strftime('%Y-%m-%d') }}</td>
   <td>{{ doc.document_type.name }}</td>
-  <td>{{ doc.status.name }}</td>
-  <td>
-    <a href="#" onclick="event.stopPropagation()">Update Status</a>
+  <td onclick="event.stopPropagation()">
+    <form
+      method="POST"
+      action="{{ url_for('documents.update_status', doc_id=doc.id) }}"
+      onclick="event.stopPropagation()"
+    >
+      {{ form[doc.id].hidden_tag() }}
+      {{ form[doc.id].status(onchange="this.form.submit()") }}
+    </form>
   </td>
 </tr>
