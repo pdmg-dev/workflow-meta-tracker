@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Document Details{% endblock %}
+
+{% block content %}
+  <div style="display: flex; gap: 40px; align-items: flex-start;">
+    <!-- Left: Document Details -->
+    <div style="flex: 1;">
+      <h3>Details</h3>
+      <table cellpadding="6" cellspacing="0" border="1">
+        <tr>
+          <th>Reference Number</th>
+          <td>{{ document.reference_number }}</td>
+        </tr>
+        <tr>
+          <th>Document Number</th>
+          <td>{{ document.document_number or "—" }}</td>
+        </tr>
+        <tr>
+          <th>Document Type</th>
+          <td>{{ document.document_type.name }}</td>
+        </tr>
+        <tr>
+          <th>Origin</th>
+          <td>{{ document.origin }}</td>
+        </tr>
+        <tr>
+          <th>Payee</th>
+          <td>{{ document.payee }}</td>
+        </tr>
+        <tr>
+          <th>Particulars</th>
+          <td>{{ document.particulars or "—" }}</td>
+        </tr>
+        <tr>
+          <th>Amount</th>
+          <td>₱{{ "{:,.2f}".format(document.amount) if document.amount else "—" }}</td>
+        </tr>
+        <tr>
+          <th>Date Received</th>
+          <td>{{ document.date_received.strftime('%Y-%m-%d') }}</td>
+        </tr>
+        <tr>
+          <th>Created By</th>
+          <td>{{ document.creator.full_name if document.creator else "—" }}</td>
+        </tr>
+        <tr>
+          <th>Last Modified By</th>
+          <td>{{ document.changer.full_name if document.changer else "—" }}</td>
+        </tr>
+        <tr>
+          <th>Created At</th>
+          <td>{{ document.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        </tr>
+        <tr>
+          <th>Updated At</th>
+          <td>{{ document.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        </tr>
+      </table>
+
+      <br />
+      <a href="#" onclick="event.stopPropagation()">Edit</a>
+      {% if current_user.role == "admin" %}
+        | <a href="#" onclick="event.stopPropagation()">Delete</a>
+      {% endif %}
+      | <a href="{{ url_for('documents.view_all_documents') }}">Back</a>
+    </div>
+
+    <!-- Center: Status History -->
+    <div style="flex: 1;">
+      <h3>Status</h3>
+      {% include 'statuses/_history.html' %}
+    </div>
+
+    <!-- Right: Attachment List -->
+    <div style="flex: 1;">
+      <h3>Attachments</h3>
+      {% include 'documents/_attach_list.html' %}
+    </div>
+  </div>
+{% endblock %}

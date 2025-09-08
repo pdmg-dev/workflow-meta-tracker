@@ -42,3 +42,10 @@ def view_all_documents():
         .all()
     )
     return render_template("documents/list.html", documents=documents)
+
+
+@document_bp.route("<int:doc_id>", methods=["GET"])
+@login_required
+def view_document(doc_id):
+    document = db.session.query(Document).get(doc_id)
+    return render_template("documents/detail.html", document=document)
