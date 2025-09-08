@@ -1,0 +1,14 @@
+<!--app/templates/documents/_row.html-->
+<tr onclick="window.location='{{ url_for('documents.view_document', doc_id=doc.id) }}'" style="cursor: pointer;">
+  <td>{{ doc.reference_number }}</td>
+  <td>{{ doc.document_number }}</td>
+  <td>{{ doc.payee }}</td>
+  <td>{{ doc.origin }}</td>
+  <td>{{ doc.amount }}</td>
+  <td>{{ doc.date_received.strftime('%Y-%m-%d') }}</td>
+  <td>{{ doc.document_type.name }}</td>
+  <td>{{ doc.status.name }}</td>
+  <td>
+    <a href="#" onclick="event.stopPropagation()">Update Status</a>
+  </td>
+</tr>

@@ -1,0 +1,25 @@
+<!--app/templates/documents/_table.html-->
+<table border="1" cellpadding="6" cellspacing="0">
+  <thead>
+    <tr>
+      <th>Reference No.</th>
+      <th>Document No.</th>
+      <th>Payee</th>
+      <th>Origin</th>
+      <th>Amount</th>
+      <th>Date Received</th>
+      <th>Type</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for doc in documents %}
+      {% include 'documents/_row.html' with context %}
+    {% else %}
+      <tr>
+        <td colspan="7" style="text-align: center;">No documents found.</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
