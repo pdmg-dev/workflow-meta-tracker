@@ -1,8 +1,9 @@
 # app/blueprints/documents/views.py
 from flask import flash, redirect, render_template, url_for
-from flask_login import login_required
+from flask_login import current_user, login_required
 
 from app.blueprints.statuses.forms import StatusUpdateForm
+from app.blueprints.statuses.models import StatusHistory
 from app.extensions import db
 
 from . import document_bp
@@ -70,7 +71,23 @@ def update_status(doc_id):
     form = StatusUpdateForm(obj=document)
 
     if form.validate_on_submit():
-        document.status_id = form.status.data
+        new_status_id = form.status.data
+        note = form.note.data
+
+        document.status_id = new_status_id
+
+        history = StatusHistory(
+            document_id=doc_id,
+            status_id=new_status_id,
+            changed_by=current_user.id,
+            note=note,
+        )
+        db.session.add(history)
         db.session.commit()
-        flash("Status updated successfully.", "success")
+
+        flash("Status updated and history logged.", "success")
         return redirect(url_for("documents.view_all_documents"))
+
+    return render_template(
+        "documents/update_status.html", form=form, document=document
+    )
