@@ -32,6 +32,10 @@
           <td>{{ document.particulars or "—" }}</td>
         </tr>
         <tr>
+          <th>Status</th>
+          <td>{{ document.status.name if document.status.name else "—" }}</td>
+        </tr>
+        <tr>
           <th>Amount</th>
           <td>₱{{ "{:,.2f}".format(document.amount) if document.amount else "—" }}</td>
         </tr>
@@ -58,9 +62,9 @@
       </table>
 
       <br />
-      <a href="#" onclick="event.stopPropagation()">Edit</a>
+      <a href="#">Edit</a>
       {% if current_user.role == "admin" %}
-        | <a href="#" onclick="event.stopPropagation()">Delete</a>
+        | <a href="#">Delete</a>
       {% endif %}
       | <a href="{{ url_for('documents.view_all_documents') }}">Back</a>
     </div>
