@@ -12,6 +12,7 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired, Optional
 
+from app.blueprints.statuses.models import Status
 from app.extensions import db
 
 from .models import DocumentType
@@ -27,7 +28,7 @@ class DocumentForm(FlaskForm):
     date_received = DateField(
         "Date Received", default=date.today, validators=[DataRequired()]
     )
-    # status_id = SelectField("Status", coerce=int)
+    status = SelectField("Status", coerce=int)
     submit = SubmitField("Save")
 
     def __init__(self, *args, **kwargs):
@@ -39,6 +40,17 @@ class DocumentForm(FlaskForm):
             .order_by(DocumentType.name.asc())
             .all()
         ]
+        self.status.choices = [
+            (doc_type.id, doc_type.name)
+            for doc_type in db.session.query(Status)
+            .filter_by(is_active=True)
+            .order_by(Status.name.asc())
+            .all()
+        ]
 
-    # self.status_id.choices = [(s.id, s.name)
-    # for s in Status.query.filter_by(is_active=True)]
+        # Set default status to "Received"
+        received_status = (
+            db.session.query(Status).filter_by(name="Received").first()
+        )
+        if received_status:
+            self.status.data = received_status.id
