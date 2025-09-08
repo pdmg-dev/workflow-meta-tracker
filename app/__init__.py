@@ -6,7 +6,7 @@ from scripts.seed import seed_data
 from .blueprints import admin_bp, auth_bp, document_bp, main_bp, staff_bp
 from .config import get_config
 from .extensions import bcrypt, db, login_manager, migrate
-from .utils.navigation import get_dashboard_url
+from .utils import filters, navigation
 
 
 def create_app():
@@ -30,7 +30,8 @@ def create_app():
     app.register_blueprint(document_bp)
 
     # Global functions
-    app.jinja_env.globals["url_for_dashboard"] = get_dashboard_url
+    app.jinja_env.globals["url_for_dashboard"] = navigation.get_dashboard_url
+    app.jinja_env.filters["local_time"] = filters.local_time
 
     # Register event listeners
     from .listeners import ref_number  # noqa: F401
