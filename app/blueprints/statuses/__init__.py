@@ -3,4 +3,4 @@
 
 # status_bp = Blueprint("statuses", __name__, url_prefix="/statuses")
 
-# from . import forms, views  # noqa: E402 F401
+from . import forms  # views  # noqa: E402 F401

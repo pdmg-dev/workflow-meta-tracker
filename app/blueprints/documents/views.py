@@ -2,6 +2,7 @@
 from flask import flash, redirect, render_template, url_for
 from flask_login import login_required
 
+from app.blueprints.statuses.forms import StatusUpdateForm
 from app.extensions import db
 
 from . import document_bp
@@ -22,6 +23,7 @@ def create_document():
             origin=form.origin.data,
             particulars=form.particulars.data,
             amount=form.amount.data,
+            status_id=form.status.data,
             date_received=form.date_received.data,
         )
 
@@ -41,7 +43,17 @@ def view_all_documents():
         .order_by(Document.date_received.desc())
         .all()
     )
-    return render_template("documents/list.html", documents=documents)
+
+    # Show the current document status in the form
+    form = {}
+    for doc in documents:
+        status_form = StatusUpdateForm()
+        status_form.status.data = doc.status_id  # Set current status
+        form[doc.id] = status_form
+
+    return render_template(
+        "documents/list.html", documents=documents, form=form
+    )
 
 
 @document_bp.route("<int:doc_id>", methods=["GET"])
@@ -49,3 +61,16 @@ def view_all_documents():
 def view_document(doc_id):
     document = db.session.query(Document).get(doc_id)
     return render_template("documents/detail.html", document=document)
+
+
+@document_bp.route("/<int:doc_id>/update-status", methods=["GET", "POST"])
+@login_required
+def update_status(doc_id):
+    document = db.session.query(Document).get(doc_id)
+    form = StatusUpdateForm(obj=document)
+
+    if form.validate_on_submit():
+        document.status_id = form.status.data
+        db.session.commit()
+        flash("Status updated successfully.", "success")
+        return redirect(url_for("documents.view_all_documents"))
