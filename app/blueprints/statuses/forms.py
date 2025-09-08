@@ -1,7 +1,7 @@
 # app/blueprints/statuses/forms.py
 from flask_wtf import FlaskForm
-from wtforms import SelectField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms import SelectField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired, Optional
 
 from app.extensions import db
 
@@ -12,6 +12,7 @@ from .models import Status
 
 class StatusUpdateForm(FlaskForm):
     status = SelectField("Status", coerce=int, validators=[DataRequired()])
+    note = TextAreaField("Optional Note", validators=[Optional()])
     submit = SubmitField("Update")
 
     def __init__(self, *args, **kwargs):
