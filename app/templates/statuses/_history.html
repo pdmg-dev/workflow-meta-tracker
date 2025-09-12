@@ -10,12 +10,12 @@
         </tr>
       </thead>
       <tbody>
-        {% for entry in document.status_history | sort(attribute='changed_at', reverse=True) %}
+        {% for entry in document.status_history.all() | sort(attribute='changed_at', reverse=True) %}
           <tr>
             <td>{{ entry.status.name }}</td>
             <td>{{ entry.changer.full_name if entry.changer else "—" }}</td>
             <td>{{ entry.changed_at | local_time }}</td>
-            <td>{{ entry.note or "—" }}</td>
+            <td>{{ entry.resolved_note }}</td>
           </tr>
         {% endfor %}
       </tbody>

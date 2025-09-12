@@ -1,8 +1,9 @@
 import random
+from datetime import datetime, timezone
 
 from app.blueprints.auth.models import AuthIdentity
 from app.blueprints.documents.models import Document, DocumentType
-from app.blueprints.statuses.models import Status
+from app.blueprints.statuses.models import Status, StatusHistory
 from app.blueprints.users.models import User
 from app.extensions import db
 
@@ -10,12 +11,11 @@ from .rand_meta import get_random_doc_number, get_random_utc_datetime
 
 
 def seed_data():
-    # Admin User
-    existing_identity = db.session.execute(
-        db.session.query(AuthIdentity).filter_by(username="admin")
-    ).first()
-
-    if not existing_identity:
+    # Create Admin User
+    admin_identity = (
+        db.session.query(AuthIdentity).filter_by(username="admin").first()
+    )
+    if not admin_identity:
         admin_user = User(full_name="Admin", role="admin", is_active=True)
         db.session.add(admin_user)
         db.session.flush()
@@ -24,12 +24,11 @@ def seed_data():
         admin_identity.set_password("admin")
         db.session.add(admin_identity)
 
-    # Staff User
-    existing_identity = db.session.execute(
-        db.session.query(AuthIdentity).filter_by(username="staff")
-    ).first()
-
-    if not existing_identity:
+    # Create Staff User
+    staff_identity = (
+        db.session.query(AuthIdentity).filter_by(username="staff").first()
+    )
+    if not staff_identity:
         staff_user = User(full_name="Staff", role="staff", is_active=True)
         db.session.add(staff_user)
         db.session.flush()
@@ -41,27 +40,37 @@ def seed_data():
     db.session.commit()
 
     # Document Types
-    document_types = {
-        "DBV": "Disbursement Voucher",
+    document_types_dict = {
+        "PJT": "Project",
+        "SLY": "Salary",
+        "OPC": "Procurement",
         "PYR": "Payroll",
-        "PO": "Purchase Order",
-        "PR": "Purchase Request",
-        "OR": "Official Receipt",
-        "LQR": "Liquidation Reports",
+        "TEV": "Travel",
+        "GAS": "Gasoline",
+        "TEL": "Telephone",
+        "DON": "Donation",
     }
 
-    for code, name in document_types.items():
+    for code, name in document_types_dict.items():
         if not db.session.query(DocumentType).filter_by(code=code).first():
             db.session.add(DocumentType(name=name, code=code))
     db.session.commit()
 
-    # Statuses
-    for name in ["Received", "Processing", "Released"]:
+    # Statuses and Notes
+    status_definitions = {
+        "Received": "For Review",
+        "Checked & Verified": "For Processing",
+        "Sorted & Prepared": "For Approval",
+        "Approved & Signed": "For Released",
+        "Returned": "",
+    }
+
+    for name, note in status_definitions.items():
         if not db.session.query(Status).filter_by(name=name).first():
-            db.session.add(Status(name=name))
+            db.session.add(Status(name=name, default_note=note))
     db.session.commit()
 
-    # Sample "Payees"
+    # Sample Data
     sample_payees = [
         "Liam Reyes",
         "Isabella Cruz",
@@ -75,7 +84,6 @@ def seed_data():
         "Zara Delos Santos",
     ]
 
-    # Sample "Origin"
     sample_origins = [
         "Municipal Accounting Office",
         "Municipal Budget Office",
@@ -86,7 +94,6 @@ def seed_data():
         "Municipal Social Welfare Office",
     ]
 
-    # Sample "Particulars"
     sample_particulars = [
         "Payment for barangay health workers' honorarium - Q3 2025",
         "Procurement of construction materials for covered court in Brgy. Poblacion",  # noqa: E501
@@ -98,21 +105,19 @@ def seed_data():
         "Printing of official receipts for local business tax collection",
         "Purchase of agricultural inputs for farmers' livelihood program",
         "Consultancy fee for urban planning project - Phase 1",
-        "Fuel expenses for disaster response operations",
-        "Rental of sound system for Independence Day program",
-        "Medical supplies for Municipal Health Office",
-        "Honorarium for guest speaker during Youth Leadership Summit",
-        "Internet service payment for Municipal Hall - September 2025",
     ]
 
-    # Query for documents
-    admin = db.session.query(AuthIdentity).filter_by(username="admin").first()
-    staff = db.session.query(AuthIdentity).filter_by(username="staff").first()
+    # Fetch required entities
+    admin_user = db.session.query(User).filter_by(full_name="Admin").first()
+    staff_user = db.session.query(User).filter_by(full_name="Staff").first()
     document_types = db.session.query(DocumentType).all()
-    statuses = db.session.query(Status).all()
 
-    # Documents
-    if not Document.query.first():
+    # Seed Documents with auto StatusHistory
+    if not db.session.query(Document).first():
+        received_status = (
+            db.session.query(Status).filter_by(name="Received").first()
+        )
+
         for i in range(10):
             doc = Document(
                 document_type_id=random.choice(document_types).id,
@@ -122,9 +127,20 @@ def seed_data():
                 particulars=sample_particulars[i],
                 amount=random.randint(1000, 50000),
                 date_received=get_random_utc_datetime(days_range=30),
-                status_id=random.choice(statuses).id,
-                created_by=random.choice([admin.id, staff.id]),
+                status_id=received_status.id,
+                created_by=staff_user.id,
             )
             db.session.add(doc)
-            db.session.flush()
+            db.session.flush()  # Get doc.id before committing
+
+            # Automatically log status history as "Received"
+            history = StatusHistory(
+                document_id=doc.id,
+                status_id=received_status.id,
+                changed_by=staff_user.id,
+                note="For Review",
+                changed_at=datetime.now(timezone.utc),
+            )
+            db.session.add(history)
+
         db.session.commit()

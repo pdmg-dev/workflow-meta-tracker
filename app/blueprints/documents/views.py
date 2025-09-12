@@ -3,7 +3,7 @@ from flask import flash, redirect, render_template, url_for
 from flask_login import current_user, login_required
 
 from app.blueprints.statuses.forms import StatusUpdateForm
-from app.blueprints.statuses.models import StatusHistory
+from app.blueprints.statuses.models import Status, StatusHistory
 from app.extensions import db
 
 from . import document_bp
@@ -26,10 +26,24 @@ def create_document():
             amount=form.amount.data,
             status_id=form.status.data,
             date_received=form.date_received.data,
+            created_by=current_user.id,
         )
 
+        # First, add and commit the document to get its ID
         db.session.add(new_document)
         db.session.commit()
+
+        # Automatically log status history as "Received"
+        status = db.session.query(Status).get(new_document.status_id)
+        history = StatusHistory(
+            document_id=new_document.id,
+            status_id=new_document.status_id,
+            changed_by=current_user.id,
+            note=status.default_note,
+        )
+        db.session.add(history)
+        db.session.commit()
+
         flash("Document added successfully.", "success")
         return redirect(url_for("documents.create_document"))
 
@@ -64,6 +78,15 @@ def view_document(doc_id):
     return render_template("documents/detail.html", document=document)
 
 
+STATUS_NOTES = {
+    "Received": "For Review",
+    "Checked & Verified": "For Processing",
+    "Sorted & Prepared": "For Approval",
+    "Approved & Signed": "For Released",
+    "Returned": "",
+}
+
+
 @document_bp.route("/<int:doc_id>/update-status", methods=["GET", "POST"])
 @login_required
 def update_status(doc_id):
@@ -75,12 +98,17 @@ def update_status(doc_id):
         note = form.note.data
 
         document.status_id = new_status_id
+        status = db.session.query(Status).get(new_status_id)
+
+        final_note = (
+            note.strip() if note and note.strip() else status.default_note
+        )
 
         history = StatusHistory(
             document_id=doc_id,
             status_id=new_status_id,
             changed_by=current_user.id,
-            note=note,
+            note=final_note,
         )
         db.session.add(history)
         db.session.commit()
