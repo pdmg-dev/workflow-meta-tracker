@@ -10,6 +10,7 @@ class Status(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=True)
+    default_note = db.Column(db.Text, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
 
 
@@ -29,3 +30,7 @@ class StatusHistory(db.Model):
 
     status = db.relationship("Status", lazy="joined")
     changer = db.relationship("User", lazy="joined")
+
+    @property
+    def resolved_note(self):
+        return self.note or self.status.default_note or "—"

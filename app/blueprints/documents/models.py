@@ -56,7 +56,12 @@ class Document(db.Model):
         lazy="joined",
     )
     status = db.relationship("Status", backref="documents", lazy="joined")
-    status_history = db.relationship("StatusHistory", backref="document")
+    status_history = db.relationship(
+        "StatusHistory",
+        backref="document",
+        lazy="dynamic",
+        cascade="all, delete-orphan",
+    )
 
 
 class DocumentType(db.Model):
