@@ -1,17 +1,20 @@
 # app/__init__.py
 from flask import Flask
 
-from scripts.seed import seed_data
+from scripts.seed_all import seed_all
 
-from .blueprints import admin_bp, auth_bp, document_bp, main_bp, staff_bp
+from .blueprints import admin_bp, auth_bp, tracker_bp, voucher_bp
 from .config import get_config
 from .extensions import bcrypt, db, login_manager, migrate
-from .utils import filters, navigation
+from .utils import filters
 
 
-def create_app():
+def create_app(config_class=None):
     app = Flask(__name__)
-    app.config.from_object(get_config())
+    if config_class:
+        app.config.from_object(config_class)
+    else:
+        app.config.from_object(get_config())
 
     # Initialize extensions
     db.init_app(app)
@@ -23,22 +26,23 @@ def create_app():
     login_manager.login_view = "auth.login"
 
     # Register blueprints
-    app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
-    app.register_blueprint(staff_bp)
+    app.register_blueprint(tracker_bp)
+    app.register_blueprint(voucher_bp)
     app.register_blueprint(admin_bp)
-    app.register_blueprint(document_bp)
 
     # Global functions
-    app.jinja_env.globals["url_for_dashboard"] = navigation.get_dashboard_url
+    # app.jinja_env.globals["url_for_dashboard"] = navigation.get_dashboard_url
     app.jinja_env.filters["local_time"] = filters.local_time
+    app.jinja_env.filters["voucher_type"] = filters.voucher_type
+    app.jinja_env.filters["voucher_status"] = filters.voucher_status
 
     # Register event listeners
-    from .listeners import ref_number  # noqa: F401
+    from .utils import ref_number  # noqa: F401
 
     # Application Context
     with app.app_context():
         db.create_all()
-        seed_data()
+        seed_all()
 
     return app

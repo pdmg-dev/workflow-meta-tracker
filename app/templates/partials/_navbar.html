@@ -1,0 +1,37 @@
+<nav class="navbar navbar-expand-lg py-2">
+  <div class="container-fluid px-0">
+    <a class="navbar-brand fw-bold text-primary" href="{{ url_for('tracker.dashboard') }}">Voucher Tracker</a>
+    {% if current_user.is_authenticated %}
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <div class="container-fluid d-flex justify-content-between align-items-center pe-0 ps-0">
+          <!-- Centered Dashboard / Add Voucher Buttons -->
+          <div class="nav-center position-absolute start-50 translate-middle-x">
+            <a
+              href="{{ url_for('tracker.dashboard') }}"
+              class="btn {{ 'active' if request.endpoint == 'tracker.dashboard' else '' }}"
+            >
+              Dashboard
+            </a>
+            <a
+              href="{{ url_for('voucher.new_voucher') }}"
+              class="btn {{ 'active' if request.endpoint == 'voucher.new_voucher' else '' }}"
+            >
+              Vouchers
+            </a>
+          </div>
+
+          <!-- Right-Aligned Logout Button -->
+          <div class="ms-auto">
+            <form action="{{ url_for('auth.logout') }}" method="post" class="d-inline">
+              <button type="submit" class="btn btn-outline-primary">Logout</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</nav>

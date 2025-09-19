@@ -1,0 +1,99 @@
+<style>
+  /* Modern dashboard table with equal column widths */
+  .dashboard-table {
+    width: 100%;
+    table-layout: fixed; /* equal-width columns */
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    max-height: 100%;
+  }
+
+  .dashboard-table th,
+  .dashboard-table td {
+    padding: 0.75rem 0.75rem; /* uniform padding */
+    text-align: left;
+    vertical-align: middle;
+    overflow-wrap: break-word; /* wrap long words */
+    word-break: break-word;
+    white-space: normal; /* allow line breaks */
+    border-bottom: 1px solid #dee2e6; /* subtle row separation */
+  }
+
+  .dashboard-table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 2;
+    background-color: #f8f9fa;
+    font-weight: 600;
+    text-align: center; /* center header text for better alignment */
+  }
+
+  .dashboard-table tbody td {
+    text-align: center; /* default center alignment */
+  }
+
+  /* Right-align amounts and dates for readability */
+  .dashboard-table td.text-end {
+    text-align: right;
+  }
+
+  .dashboard-table tbody tr:hover {
+    background-color: #f1f3f5; /* subtle hover effect */
+  }
+</style>
+
+  <table class="dashboard-table">
+    <thead>
+      <tr>
+        <th></th>
+        <!-- Checkbox column header -->
+        <th class="text-start">Reference #</th>
+        <th class="text-start">Payee</th>
+        <th>Amount</th>
+        <th>Date Received</th>
+        <th>Checker</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for voucher in vouchers %}
+        <tr
+          hx-get="{{ url_for('voucher.particulars', voucher_id=voucher.id) }}"
+          hx-target="#particulars .card-body"
+          hx-swap="innerHTML"
+          style="cursor: pointer;"
+        >
+          <td>
+            <input type="checkbox" name="voucher_ids" value="{{ voucher.id }}" />
+          </td>
+          <td class="text-start">{{ voucher.reference_number }}</td>
+          <td class="text-start">{{ voucher.payee }}</td>
+          <td class="text-end">{{ "{:,.2f}".format(voucher.amount) }}</td>
+          <td class="text-end">{{ voucher.date_received | local_time }}</td>
+          <td class="text-end">{{ "-" }}</td>
+          <td>
+            <span
+              class="badge
+              {% if voucher.status.name == 'Paid' %}
+                bg-success
+              {% elif voucher.status.name == 'Pending' %}
+                bg-warning text-dark
+              {% elif voucher.status.name == 'Rejected' %}
+                bg-danger
+              {% else %}
+                bg-secondary
+              {% endif %}"
+            >
+              {{ voucher.status.name }}
+            </span>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-muted">No vouchers found</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+

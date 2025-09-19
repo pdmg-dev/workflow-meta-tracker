@@ -1,0 +1,269 @@
+<form
+  class="d-flex flex-column gap-3"
+  hx-post="{{ url_for('voucher.new_voucher') }}"
+  hx-target="#entry-form-container"
+  hx-swap="innerHTML"
+>
+  {{ form.hidden_tag() }}
+
+  <div class="row g-4">
+    <!-- Voucher Type -->
+    <div class="col-md-4 mb-3">
+      {{ form.voucher_type.label(class="form-label") }}
+      {{
+        form.voucher_type(
+             class="form-select" + (' is-invalid' if form.voucher_type.errors else ''),
+             required=True,
+             data_autofocus="true"
+        )
+      }}
+      {% for err in form.voucher_type.errors %}
+        <div class="invalid-feedback">{{ err }}</div>
+      {% endfor %}
+    </div>
+
+    <!-- Origin -->
+    <div class="col-md-4 mb-3">
+      {{ form.origin.label(class="form-label") }}
+      {{
+        form.origin(
+             class="form-control" + (' is-invalid' if form.origin.errors else ''),
+             maxlength=120,
+             required=True
+        )
+      }}
+      {% for err in form.origin.errors %}
+        <div class="invalid-feedback">{{ err }}</div>
+      {% endfor %}
+    </div>
+
+    <!-- Date Received -->
+    <div class="col-md-4 mb-3">
+      {{ form.date_received.label(class="form-label") }}
+      {{
+        form.date_received(
+             class="form-control" + (' is-invalid' if form.date_received.errors else ''),
+             type="datetime-local",
+             required=True,
+             value=form.date_received.data.strftime('%Y-%m-%dT%H:%M')
+                   if form.date_received.data else ''
+        )
+      }}
+      {% for err in form.date_received.errors %}
+        <div class="invalid-feedback">{{ err }}</div>
+      {% endfor %}
+    </div>
+
+    <!-- Payee -->
+    <div class="col-md-8 mb-3">
+      {{ form.payee.label(class="form-label") }}
+      {{
+        form.payee(
+             class="form-control" + (' is-invalid' if form.payee.errors else ''),
+             maxlength=120,
+             required=True
+        )
+      }}
+      {% for err in form.payee.errors %}
+        <div class="invalid-feedback">{{ err }}</div>
+      {% endfor %}
+    </div>
+
+    <!-- Amount -->
+    <div class="col-md-4 mb-3">
+      {{ form.amount.label(class="form-label") }}
+      {{
+        form.amount(
+             class="form-control" + (' is-invalid' if form.amount.errors else ''),
+             type="number",
+             step="0.01",
+             min="0.01",
+             inputmode="decimal",
+             required=True,
+             oninput="limitDigits(this, 8, 2)"
+        )
+      }}
+      {% for err in form.amount.errors %}
+        <div class="invalid-feedback">{{ err }}</div>
+      {% endfor %}
+    </div>
+
+    <!-- Particulars -->
+    <div class="col-12 mb-3">
+      {{ form.particulars.label(class="form-label") }}
+      {{
+        form.particulars(
+             class="form-control" + (' is-invalid' if form.particulars.errors else ''),
+             rows="6",
+             maxlength=2000,
+             required=True
+        )
+      }}
+      {% for err in form.particulars.errors %}
+        <div class="invalid-feedback">{{ err }}</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between mt-2">
+    <a href="{{ url_for('tracker.dashboard') }}" class="btn btn-outline-secondary">← Back</a>
+    <button type="submit" class="btn btn-primary px-4"><i class="bi bi-plus-circle mx-2"></i>Save & Add Another</button>
+  </div>
+</form>
+
+<script>
+  (() => {
+    // -----------------------------
+    // Prevent double-binding
+    // -----------------------------
+    // HTMX can swap content, which might reload this script.
+    // We use a global flag to ensure all event listeners bind only once.
+    if (window.__voucherFormBound) return;
+    window.__voucherFormBound = true;
+
+    // -----------------------------
+    // Constants
+    // -----------------------------
+    // The container ID for the voucher form.
+    const FORM_CONTAINER_ID = "entry-form-container";
+
+    // -----------------------------
+    // Helpers for focusing elements
+    // -----------------------------
+
+    /** Safely focus an element without scrolling the page */
+    const focusElementSafely = (element) => {
+      if (!element) return;
+      try {
+        // Modern browsers support preventScroll
+        element.focus({ preventScroll: true });
+      } catch {
+        // Fallback if preventScroll is unsupported
+        element.focus();
+      }
+    };
+
+    /** Get the first focusable field in a container
+     *  Pattern: prefer [data-autofocus], otherwise find any enabled input/select/textarea or positive tabindex
+     */
+    const getFirstFocusableField = (formContainer) => {
+      return (
+        formContainer.querySelector("[data-autofocus]") ||
+        formContainer.querySelector(
+          "select:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])",
+        )
+      );
+    };
+
+    /** Focus the first field in the container */
+    const focusFirstFieldInContainer = (formContainer) => {
+      focusElementSafely(getFirstFocusableField(formContainer));
+    };
+
+    /** Focus the first field that currently has a validation error
+     *  Returns true if an invalid field was found and focused
+     */
+    const focusFirstInvalidField = (formContainer) => {
+      const invalidField = formContainer.querySelector("input.is-invalid, select.is-invalid, textarea.is-invalid");
+      if (!invalidField) return false;
+      focusElementSafely(invalidField);
+      return true;
+    };
+
+    // -----------------------------
+    // 1) Handle successful voucher save
+    // -----------------------------
+    // Pattern: HTMX may swap the form even on success, so we wait for the next paint
+    // and a small timeout to ensure DOM classes are applied.
+    // Focus first invalid field if it exists, else focus first field.
+    document.addEventListener("voucherSaved", () => {
+      showToast("Voucher saved successfully.", "success");
+
+      const formContainer = document.getElementById(FORM_CONTAINER_ID);
+      if (!formContainer) return;
+
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          if (!focusFirstInvalidField(formContainer)) {
+            focusFirstFieldInContainer(formContainer);
+          }
+        }, 50); // Small delay gives browser time to apply DOM updates
+      });
+    });
+
+    // -----------------------------
+    // 2) Focus logic after HTMX swaps the form (for validation errors)
+    // -----------------------------
+    // Pattern: wait for the next paint, then check for invalid fields
+    // If none exist, fallback to the first field
+    document.addEventListener("htmx:afterSwap", (event) => {
+      const formContainer = event.detail?.target;
+      if (!formContainer || formContainer.id !== FORM_CONTAINER_ID) return;
+
+      requestAnimationFrame(() => {
+        if (focusFirstInvalidField(formContainer)) return;
+
+        setTimeout(() => {
+          if (!focusFirstInvalidField(formContainer)) {
+            focusFirstFieldInContainer(formContainer);
+          }
+        }, 50); // Allow browser to update classes/styles
+      });
+    });
+
+    // -----------------------------
+    // 3) Keyboard shortcut: Ctrl+Enter submits the form
+    // -----------------------------
+    // Pattern: listen for keydown globally, find the closest form, submit it
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && event.ctrlKey) {
+        const currentForm = event.target?.closest("form");
+        if (currentForm) {
+          event.preventDefault();
+          currentForm.requestSubmit(); // Modern method to submit programmatically
+        }
+      }
+    });
+
+    // -----------------------------
+    // 4) Disable submit button during HTMX requests
+    // -----------------------------
+    // Pattern: prevent double submission by disabling the submit button
+    // before the request and re-enable after it completes
+    const setSubmitButtonState = (form, disabled) => {
+      const submitButton = form.querySelector("button[type=submit]");
+      if (submitButton) submitButton.disabled = disabled;
+    };
+
+    document.addEventListener("htmx:beforeRequest", (event) => {
+      const currentForm = event.target?.closest("form");
+      if (currentForm) setSubmitButtonState(currentForm, true);
+    });
+
+    document.addEventListener("htmx:afterRequest", (event) => {
+      const currentForm = event.target?.closest("form");
+      if (currentForm) setSubmitButtonState(currentForm, false);
+    });
+
+    // -----------------------------
+    // Patterns recap for future self:
+    // 1. Bind once using a global flag to prevent duplicate event listeners.
+    // 2. Always safely focus elements after DOM updates (requestAnimationFrame + small setTimeout).
+    // 3. Separate focus logic for errors vs successful save.
+    // 4. Use helper functions to avoid duplicating querySelector/focus logic.
+    // 5. Disable submit buttons during async requests to prevent double submissions.
+    // -----------------------------
+  })();
+
+  function limitDigits(input, maxWhole, maxDecimal) {
+    let value = input.value;
+    let [whole, decimal = ""] = value.split(".");
+    if (whole.length > maxWhole) {
+      whole = whole.slice(0, maxWhole);
+    }
+    if (decimal.length > maxDecimal) {
+      decimal = decimal.slice(0, maxDecimal);
+    }
+    input.value = decimal ? `${whole}.${decimal}` : whole;
+  }
+</script>

@@ -3,6 +3,8 @@
 import pytz
 from flask import session
 
+from app.models.voucher import VoucherStatus, VoucherType
+
 
 def local_time(value, format="%b %d, %Y %I:%M %p"):
     if not value:
@@ -22,3 +24,11 @@ def local_time(value, format="%b %d, %Y %I:%M %p"):
 
     local_dt = value.astimezone(user_tz)
     return local_dt.strftime(format)
+
+
+def voucher_type(vouchers, code):
+    return vouchers.join(VoucherType).filter(VoucherType.code == code).count()
+
+
+def voucher_status(vouchers, code):
+    return vouchers.join(VoucherStatus).filter(VoucherStatus.code == code).count()

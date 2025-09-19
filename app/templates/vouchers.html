@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="d-flex flex-column h-100 p-4">
+    {# Header #}
+    <div class="d-flex flex-row align-items-center justify-content-between pb-4">
+      <h4 class="mb-0 fw-bold">Vouchers</h4>
+    </div>
+    {# Vouchers Page with Entry Form#}
+    <div id="entry-form-container">{% include 'voucher/detail.html' %}</div>
+  </div>
+{% endblock %}

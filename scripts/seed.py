@@ -2,9 +2,9 @@ import random
 from datetime import datetime, timezone
 
 from app.blueprints.auth.models import AuthIdentity
-from app.blueprints.documents.models import Document, DocumentType
 from app.blueprints.statuses.models import Status, StatusHistory
 from app.blueprints.users.models import User
+from app.blueprints.voucher.models import Document, DocumentType
 from app.extensions import db
 
 from .rand_meta import get_random_doc_number, get_random_utc_datetime
@@ -12,9 +12,7 @@ from .rand_meta import get_random_doc_number, get_random_utc_datetime
 
 def seed_data():
     # Create Admin User
-    admin_identity = (
-        db.session.query(AuthIdentity).filter_by(username="admin").first()
-    )
+    admin_identity = db.session.query(AuthIdentity).filter_by(username="admin").first()
     if not admin_identity:
         admin_user = User(full_name="Admin", role="admin", is_active=True)
         db.session.add(admin_user)
@@ -25,9 +23,7 @@ def seed_data():
         db.session.add(admin_identity)
 
     # Create Staff User
-    staff_identity = (
-        db.session.query(AuthIdentity).filter_by(username="staff").first()
-    )
+    staff_identity = db.session.query(AuthIdentity).filter_by(username="staff").first()
     if not staff_identity:
         staff_user = User(full_name="Staff", role="staff", is_active=True)
         db.session.add(staff_user)
@@ -114,9 +110,7 @@ def seed_data():
 
     # Seed Documents with auto StatusHistory
     if not db.session.query(Document).first():
-        received_status = (
-            db.session.query(Status).filter_by(name="Received").first()
-        )
+        received_status = db.session.query(Status).filter_by(name="Received").first()
 
         for i in range(10):
             doc = Document(
