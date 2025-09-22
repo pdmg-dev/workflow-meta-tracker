@@ -11,6 +11,7 @@ from .utils import filters
 
 def create_app(config_class=None):
     app = Flask(__name__)
+    # Load configuration
     if config_class:
         app.config.from_object(config_class)
     else:
@@ -31,8 +32,7 @@ def create_app(config_class=None):
     app.register_blueprint(voucher_bp)
     app.register_blueprint(admin_bp)
 
-    # Global functions
-    # app.jinja_env.globals["url_for_dashboard"] = navigation.get_dashboard_url
+    # Register custom Jinja2 filters
     app.jinja_env.filters["local_time"] = filters.local_time
     app.jinja_env.filters["voucher_type"] = filters.voucher_type
     app.jinja_env.filters["voucher_status"] = filters.voucher_status
