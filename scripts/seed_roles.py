@@ -9,6 +9,7 @@ def seed_roles():
         {"name": "Checker", "code": "checker"},
         {"name": "Sorter", "code": "sorter"},
         {"name": "Signatory", "code": "signatory"},
+        {"name": "Manager", "code": "manager"},
     ]
 
     for role_data in dafault_user_roles:
