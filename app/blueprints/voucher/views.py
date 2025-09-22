@@ -66,6 +66,7 @@ def new_voucher():
     return render_template("new_voucher.html", form=form)
 
 
+# NOTE: Sample Preview
 @voucher_bp.route("/voucher/<int:voucher_id>")
 @login_required
 def particulars(voucher_id):
@@ -73,6 +74,38 @@ def particulars(voucher_id):
     if not voucher:
         return "", 404
     return render_template("voucher/_particulars.html", voucher=voucher)
+
+
+@voucher_bp.route("/voucher/bulk-update", methods=["POST"])
+@login_required
+@require_roles("checker")
+def bulk_update_status():
+    ids = request.form.getlist("voucher_ids")
+    if not ids:
+        return "", 204
+
+    checked_status = VoucherStatus.query.filter_by(code="checked").first_or_404()
+
+    vouchers = Voucher.query.filter(Voucher.id.in_(ids)).all()
+    for v in vouchers:
+        v.status = checked_status
+        v.updated_by_id = current_user.id
+        db.session.add(
+            VoucherStatusHistory(
+                voucher=v,
+                status=checked_status,
+                updated_by_id=current_user.id,
+                remarks="Bulk status update",
+            )
+        )
+    db.session.commit()
+
+    # return full table partial + HX-Trigger for toast/JS hooks
+    response = make_response(
+        render_template("voucher/_table.html", vouchers=Voucher.query.order_by(Voucher.date_received.desc()).all())
+    )
+    response.headers["HX-Trigger"] = json.dumps({"bulkUpdated": {"message": f"{len(ids)} vouchers marked as checked."}})
+    return response
 
 
 """

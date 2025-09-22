@@ -1,42 +1,48 @@
 {% extends 'base.html' %}
 {% block content %}
-  <div class="container-fluid p-0">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center py-2">
+  <div class="dashboard">
+    <div class="dashboard-header">
       <h4 class="mb-0 fw-bold py-2">Dashboard</h4>
       <a href="{{ url_for('voucher.new_voucher') }}" class="btn btn-primary">
         <i class="bi bi-plus me-1"></i>New Voucher
       </a>
     </div>
 
-    <!-- Main Content -->
-    <div class="row flex-grow-1 g-3 py-2 px-0">
-      <!-- Left Section -->
-      <div class="col-7 d-flex flex-column flex-grow-1 gap-3">
-        <div class="p-0">{% include "tracker/_card.html" %}</div>
-
-        <div class="card d-flex flex-column flex-fill overflow-hidden vh-50">
-          <h6 class="card-header text-muted">Recent</h6>
-          <div class="card-body p-0 d-flex flex-column flex-grow-1">
-            <div class="flex-grow-1 overflow-auto scroll-hidden" style="max-height: 350px;">
-              {% include 'voucher/_table.html' %}
-            </div>
-          </div>
+    <!-- Dashboard Content -->
+    <div class="dashboard-content">
+      <!-- LEFT SECTION -->
+      <div class="left-panel">
+        <!-- Summary Cards -->
+        <div>{% include "tracker/_card.html" %}</div>
+        <!-- Recent Table -->
+        <div class="card">
+          <h6 class="card-header text-muted py-3">Recent</h6>
+          <button
+            id="mark-checked-btn"
+            class="btn btn-primary btn-sm mx-3 align-self-start"
+            hx-post="{{ url_for('voucher.bulk_update_status') }}"
+            hx-target="#table-container"
+            hx-swap="innerHTML"
+            hx-include="#update-status-form"
+          >
+            Mark As Checked
+          </button>
+          <div id="table-container" class="table-container scroll-area">{% include 'voucher/_table.html' %}</div>
         </div>
       </div>
-
-      <!-- Right Section -->
-      <div class="col-5 d-flex flex-column flex-grow-1 gap-3">
-        <div class="card flex-fill d-flex flex-column">
+      <!-- RIGHT SECTION -->
+      <div class="right-panel">
+        <!-- Analytics Card -->
+        <div class="card">
           <h6 class="card-header text-muted">Analytics</h6>
-          <div class="card-body flex-grow-1 d-flex flex-column justify-content">
+          <div class="card-body">
             <p>Sample analytics.</p>
           </div>
         </div>
 
-        <div id="particulars" class="card flex-fill d-flex flex-column">
+        <div class="card" id="particulars">
           <h6 class="card-header text-muted">Preview</h6>
-          <div class="card-body flex-grow-1 d-flex flex-column justify-content" hx-swap="innerHTML">
+          <div class="card-body" hx-swap="innerHTML">
             <p>Select a voucher to view particulars.</p>
           </div>
         </div>
@@ -47,7 +53,10 @@
   <!-- Scroll Styling -->
   <style>
     .scroll-hidden {
+      flex-grow: 1;
+      min-height: 0;
       overflow-y: auto;
+      overflow-x: hidden;
       scrollbar-width: none;
       -ms-overflow-style: none;
     }
