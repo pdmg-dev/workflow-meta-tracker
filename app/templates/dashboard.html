@@ -17,16 +17,28 @@
         <!-- Recent Table -->
         <div class="card">
           <h6 class="card-header text-muted py-3">Recent</h6>
-          <button
-            id="mark-checked-btn"
-            class="btn btn-primary btn-sm mx-3 align-self-start"
-            hx-post="{{ url_for('voucher.bulk_update_status') }}"
-            hx-target="#table-container"
-            hx-swap="innerHTML"
-            hx-include="#update-status-form"
-          >
-            Mark As Checked
-          </button>
+          <div class="d-flex justify-content-left gap-2 ps-3">
+            <button
+              class="btn btn-primary btn-sm"
+              hx-post="{{ url_for('voucher.bulk_update_status') }}"
+              hx-target="#table-container"
+              hx-swap="innerHTML"
+              hx-include="#update-status-form"
+            >
+              Advance Status
+            </button>
+
+            <button
+              class="btn btn-danger btn-sm"
+              hx-post="{{ url_for('voucher.bulk_update_status', target='returned') }}"
+              hx-target="#table-container"
+              hx-swap="innerHTML"
+              hx-include="#update-status-form"
+            >
+              Mark as Returned
+            </button>
+          </div>
+
           <div id="table-container" class="table-container scroll-area">{% include 'voucher/_table.html' %}</div>
         </div>
       </div>
