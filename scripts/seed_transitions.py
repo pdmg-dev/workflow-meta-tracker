@@ -10,11 +10,11 @@ def seed_transitions():
     approved = VoucherStatus.query.filter_by(code="approved").one()
     returned = VoucherStatus.query.filter_by(code="returned").one()
 
+    encoder = Role.query.filter_by(code="encoder").one()
     checker = Role.query.filter_by(code="checker").one()
     sorter = Role.query.filter_by(code="sorter").one()
     approver = Role.query.filter_by(code="signatory").one()
     admin = Role.query.filter_by(code="admin").one()  # for example
-    manager = Role.query.filter_by(code="manager").one()  # for example
 
     db.session.add_all(
         [
@@ -23,15 +23,13 @@ def seed_transitions():
             VoucherStatusTransition(from_status=checked, to_status=sorted_, allowed_roles=[sorter]),
             VoucherStatusTransition(from_status=sorted_, to_status=approved, allowed_roles=[approver]),
             # return path – allow from every step back to returned
+            VoucherStatusTransition(from_status=received, to_status=returned, allowed_roles=[checker]),
+            VoucherStatusTransition(from_status=sorted_, to_status=returned, allowed_roles=[approver]),
+            VoucherStatusTransition(from_status=returned, to_status=received, allowed_roles=[encoder]),
             VoucherStatusTransition(from_status=received, to_status=returned, allowed_roles=[admin]),
             VoucherStatusTransition(from_status=checked, to_status=returned, allowed_roles=[admin]),
             VoucherStatusTransition(from_status=sorted_, to_status=returned, allowed_roles=[admin]),
             VoucherStatusTransition(from_status=approved, to_status=returned, allowed_roles=[admin]),
-            # return path – allow from every step back to returned
-            VoucherStatusTransition(from_status=received, to_status=returned, allowed_roles=[manager]),
-            VoucherStatusTransition(from_status=checked, to_status=returned, allowed_roles=[manager]),
-            VoucherStatusTransition(from_status=sorted_, to_status=returned, allowed_roles=[manager]),
-            VoucherStatusTransition(from_status=approved, to_status=returned, allowed_roles=[manager]),
         ]
     )
     db.session.commit()
