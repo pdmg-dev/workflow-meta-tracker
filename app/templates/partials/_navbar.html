@@ -17,8 +17,8 @@
               Dashboard
             </a>
             <a
-              href="{{ url_for('voucher.new_voucher') }}"
-              class="btn {{ 'active' if request.endpoint == 'voucher.new_voucher' else '' }}"
+              href="{{ url_for('tracker.view_vouchers') }}"
+              class="btn {{ 'active' if request.endpoint in ['tracker.view_vouchers', 'voucher.new_voucher'] else '' }}"
             >
               Vouchers
             </a>
@@ -35,3 +35,20 @@
     {% endif %}
   </div>
 </nav>
+
+{% block style %}
+  <style>
+    /* Navbar: Center nav items + active state */
+    .nav-center .btn {
+      background-color: lightgrey;
+      border: none;
+      box-shadow: none;
+      color: #6e6e6e;
+    }
+
+    .nav-center .btn.active {
+      background-color: #eaeaea;
+      color: black;
+    }
+  </style>
+{% endblock %}
