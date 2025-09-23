@@ -1,5 +1,7 @@
 # app/blueprints/vouchers/views.py
 
+from datetime import date, datetime
+
 import pytz
 from flask import current_app, json, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
@@ -64,7 +66,13 @@ def new_voucher():
             return make_response(render_template("voucher/form.html", form=form), 200)
         return render_template("new_voucher.html", form=form)
     # Request method: GET -> Show empty form
-    return render_template("new_voucher.html", form=form)
+    start = datetime.combine(date.today(), datetime.min.time())
+    end = datetime.combine(date.today(), datetime.max.time())
+
+    vouchers = Voucher.query.filter(Voucher.date_received.between(start, end)).order_by(
+        Voucher.date_received.desc(), Voucher.reference_number.desc()
+    )
+    return render_template("new_voucher.html", form=form, vouchers=vouchers)
 
 
 # NOTE: Sample Preview
@@ -73,8 +81,21 @@ def new_voucher():
 def particulars(voucher_id):
     voucher = db.session.get(Voucher, voucher_id)
     if not voucher:
-        return "", 404
+        return "", 204
     return render_template("voucher/_particulars.html", voucher=voucher)
+
+
+# app/blueprints/voucher/views.py
+@voucher_bp.route("/vouchers/today", methods=["GET"])
+@login_required
+def todays_vouchers():
+    start = datetime.combine(date.today(), datetime.min.time())
+    end = datetime.combine(date.today(), datetime.max.time())
+
+    vouchers = Voucher.query.filter(Voucher.date_received.between(start, end)).order_by(
+        Voucher.date_received.desc(), Voucher.reference_number.desc()
+    )
+    return render_template("voucher/_today.html", vouchers=vouchers)
 
 
 @voucher_bp.route("/voucher/bulk-update", methods=["POST"])
@@ -87,9 +108,8 @@ def bulk_update_status():
     # if manager clicked a “Return” button you can pass ?target=returned
     explicit_code = request.form.get("target_status") or request.args.get("target")
 
-    user_role_ids = {r.id for r in current_user.roles}
-
-    # preload allowed transitions for this user
+    # Preload a list of allowed transitions for the current user
+    user_role_ids = {role.id for role in current_user.roles}
     allowed_transitions = (
         db.session.query(VoucherStatusTransition)
         .join(VoucherStatusTransition.allowed_roles)

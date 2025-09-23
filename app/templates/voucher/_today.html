@@ -1,0 +1,26 @@
+<!--app/templates/voucher/_today.html-->
+<table class="vouchers-today">
+  <thead>
+    <tr class="voucher-row text-muted">
+      <th class="ref_num">Reference #</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for voucher in vouchers %}
+      <tr
+        class="voucher-row"
+        hx-get="{{ url_for('voucher.particulars', voucher_id=voucher.id) }}"
+        hx-target="#particulars .card-body"
+        hx-swap="innerHTML"
+        style="cursor: pointer;"
+      >
+        <td class="refnum-col text-start">{{ voucher.reference_number }}</td>
+      </tr>
+    {% else %}
+      <tr>
+        <td colspan="7" class="text-center text-muted">No vouchers found</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

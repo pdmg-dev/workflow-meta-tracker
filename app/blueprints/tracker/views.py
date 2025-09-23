@@ -23,3 +23,10 @@ def index():
 def dashboard():
     vouchers = db.session.query(Voucher).order_by(Voucher.date_received.desc())
     return render_template("dashboard.html", vouchers=vouchers)
+
+
+@tracker_bp.route("/vouchers", methods=["GET"])
+@login_required
+def view_vouchers():
+    vouchers = Voucher.query.order_by(Voucher.date_received.desc()).all()
+    return render_template("vouchers.html", vouchers=vouchers)
