@@ -1,11 +1,51 @@
 {% extends "base.html" %}
 {% block content %}
-  <div class="d-flex flex-column h-100 p-4">
-    {# Header #}
-    <div class="d-flex flex-row align-items-center justify-content-between pb-4">
-      <h4 class="mb-0 fw-bold">Vouchers</h4>
+  <div class="content-container">
+    <div class="content-header">
+      <h4 class="content-title">Vouchers</h4>
+      <a href="{{ url_for('voucher.new_voucher') }}" class="btn btn-primary">
+        <i class="bi bi-plus me-1"></i>New Voucher
+      </a>
     </div>
-    {# Vouchers Page with Entry Form#}
-    <div id="entry-form-container">{% include 'voucher/detail.html' %}</div>
+
+    <div class="vouchers">
+      <div class="card">
+        <h6 class="card-header text-muted">List</h6>
+        {# TODO: Put proper card header content here. #}
+        <div class="d-flex justify-content-left gap-2 ps-3">
+          <button
+            class="btn btn-primary btn-sm"
+            hx-post="{{ url_for('voucher.bulk_update_status') }}"
+            hx-target="#table-container"
+            hx-swap="innerHTML"
+            hx-include="#update-status-form"
+          >
+            Advance Status
+          </button>
+
+          <button
+            class="btn btn-danger btn-sm"
+            hx-post="{{ url_for('voucher.bulk_update_status', target='returned') }}"
+            hx-target="#table-container"
+            hx-swap="innerHTML"
+            hx-include="#update-status-form"
+          >
+            Mark as Returned
+          </button>
+        </div>
+
+        <div id="table-container" class="table-container scroll-area">{% include 'voucher/_table.html' %}</div>
+      </div>
+    </div>
   </div>
+{% endblock %}
+
+{% block style %}
+  <style>
+    .vouchers {
+      display: grid;
+      min-height: 0;
+      overflow: hidden;
+    }
+  </style>
 {% endblock %}
