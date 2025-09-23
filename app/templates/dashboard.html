@@ -1,20 +1,17 @@
 {% extends 'base.html' %}
 {% block content %}
-  <div class="dashboard">
-    <div class="dashboard-header">
-      <h4 class="mb-0 fw-bold py-2">Dashboard</h4>
+  <div class="content-container">
+    <div class="content-header">
+      <h4 class="content-title">Dashboard</h4>
       <a href="{{ url_for('voucher.new_voucher') }}" class="btn btn-primary">
         <i class="bi bi-plus me-1"></i>New Voucher
       </a>
     </div>
 
     <!-- Dashboard Content -->
-    <div class="dashboard-content">
-      <!-- LEFT SECTION -->
+    <div class="dashboard">
       <div class="left-panel">
-        <!-- Summary Cards -->
         <div>{% include "tracker/_card.html" %}</div>
-        <!-- Recent Table -->
         <div class="card">
           <h6 class="card-header text-muted py-3">Recent</h6>
           <div class="d-flex justify-content-left gap-2 ps-3">
@@ -42,18 +39,18 @@
           <div id="table-container" class="table-container scroll-area">{% include 'voucher/_table.html' %}</div>
         </div>
       </div>
-      <!-- RIGHT SECTION -->
+
       <div class="right-panel">
         <!-- Analytics Card -->
         <div class="card">
-          <h6 class="card-header text-muted">Analytics</h6>
+          <h6 class="card-header text-muted">Status History</h6>
           <div class="card-body">
-            <p>Sample analytics.</p>
+            <p>Select a voucher to view history.</p>
           </div>
         </div>
 
         <div class="card" id="particulars">
-          <h6 class="card-header text-muted">Preview</h6>
+          <h6 class="card-header text-muted">Particulars</h6>
           <div class="card-body" hx-swap="innerHTML">
             <p>Select a voucher to view particulars.</p>
           </div>
@@ -61,19 +58,30 @@
       </div>
     </div>
   </div>
+{% endblock %}
 
-  <!-- Scroll Styling -->
+{% block style %}
   <style>
-    .scroll-hidden {
-      flex-grow: 1;
+    .dashboard {
+      display: grid;
+      grid-template-columns: 4fr 2fr; /* Left 70%, Right 30% */
+      gap: 1rem;
       min-height: 0;
-      overflow-y: auto;
-      overflow-x: hidden;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+      overflow: hidden;
     }
-    .scroll-hidden::-webkit-scrollbar {
-      display: none;
+
+    .left-panel {
+      display: grid;
+      grid-template-rows: auto 1fr; /* Summary + Table */
+      gap: 1rem;
+      min-height: 0;
+    }
+
+    .right-panel {
+      display: grid;
+      grid-template-rows: 1fr 1fr; /* Analytics + Preview */
+      gap: 1rem;
+      min-height: 0;
     }
   </style>
 {% endblock %}
