@@ -1,3 +1,4 @@
+<!--app/templates/voucher/form.html-->
 <form
   class="d-flex flex-column gap-3"
   hx-post="{{ url_for('voucher.new_voucher') }}"
@@ -6,9 +7,9 @@
 >
   {{ form.hidden_tag() }}
 
-  <div class="row g-4">
+  <div class="row g-3 d-flex">
     <!-- Voucher Type -->
-    <div class="col-md-4 mb-3">
+    <div class="col-md-4">
       {{ form.voucher_type.label(class="form-label") }}
       {{
         form.voucher_type(
@@ -23,7 +24,7 @@
     </div>
 
     <!-- Origin -->
-    <div class="col-md-4 mb-3">
+    <div class="col-md-4">
       {{ form.origin.label(class="form-label") }}
       {{
         form.origin(
@@ -38,7 +39,7 @@
     </div>
 
     <!-- Date Received -->
-    <div class="col-md-4 mb-3">
+    <div class="col-md-4">
       {{ form.date_received.label(class="form-label") }}
       {{
         form.date_received(
@@ -55,7 +56,7 @@
     </div>
 
     <!-- Payee -->
-    <div class="col-md-8 mb-3">
+    <div class="col-md-8">
       {{ form.payee.label(class="form-label") }}
       {{
         form.payee(
@@ -70,7 +71,7 @@
     </div>
 
     <!-- Amount -->
-    <div class="col-md-4 mb-3">
+    <div class="col-md-4">
       {{ form.amount.label(class="form-label") }}
       {{
         form.amount(
@@ -89,11 +90,11 @@
     </div>
 
     <!-- Particulars -->
-    <div class="col-12 mb-3">
+    <div class="col-12 d-flex flex-column">
       {{ form.particulars.label(class="form-label") }}
       {{
         form.particulars(
-             class="form-control" + (' is-invalid' if form.particulars.errors else ''),
+             class="form-control flex-grow-1" + (' is-invalid' if form.particulars.errors else ''),
              rows="6",
              maxlength=2000,
              required=True
@@ -105,8 +106,8 @@
     </div>
   </div>
 
-  <div class="d-flex justify-content-between mt-2">
-    <a href="{{ url_for('tracker.dashboard') }}" class="btn btn-outline-secondary">← Back</a>
+  <div class="d-flex justify-content-between">
+    <a href="{{ url_for('tracker.view_vouchers') }}" class="btn btn-outline-secondary">← Back</a>
     <button type="submit" class="btn btn-primary px-4"><i class="bi bi-plus-circle mx-2"></i>Save & Add Another</button>
   </div>
 </form>
@@ -188,6 +189,13 @@
             focusFirstFieldInContainer(formContainer);
           }
         }, 50); // Small delay gives browser time to apply DOM updates
+      });
+    });
+
+    document.body.addEventListener("voucherSaved", () => {
+      htmx.ajax("GET", "{{ url_for('voucher.todays_vouchers') }}", {
+        target: "#todays-vouchers-body",
+        swap: "innerHTML",
       });
     });
 
