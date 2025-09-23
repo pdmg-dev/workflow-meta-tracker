@@ -25,21 +25,21 @@
         >
           <td class="checkbox-col">
             <input type="checkbox" name="voucher_ids" value="{{ voucher.id }}" />
-          </td>
+          </td> 
           <td class="refnum-col text-start">{{ voucher.reference_number }}</td>
           <td class="payee-col text-start fw-bold">{{ voucher.payee }}</td>
           <td class="amount-col text-end">{{ "{:,.2f}".format(voucher.amount) }}</td>
           <td class="date-col text-start">{{ voucher.date_received | local_time }}</td>
           <td class="assto-col text-start fw-bold">{{ voucher.assigned_to.name if voucher.assigned_to else "-" }}</td>
-          <td class="status-col text-start">
+          <td class="status-col text-center">
             <span
               class="badge
               {% if voucher.status.code == 'checked' %}
-                bg-success
+                bg-warning
               {% elif voucher.status.code == 'sorted' %}
                 bg-info
               {% elif voucher.status.code == 'approved' %}
-                bg-primary
+                bg-success
               {% elif voucher.status.code == 'returned' %}
                 bg-danger
               {% else %}
@@ -58,6 +58,8 @@
     </tbody>
   </table>
 </form>
+
+
 
 <script>
   // static/js/voucher-table.js
