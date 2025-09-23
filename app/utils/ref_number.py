@@ -1,4 +1,3 @@
-# app/utils/ref_number.py
 from datetime import date
 
 from sqlalchemy import event
@@ -9,26 +8,27 @@ from app.models.voucher import Voucher, VoucherType
 
 @event.listens_for(Voucher, "before_insert")
 def generate_reference_number(mapper, connection, target):
-    if target.reference_number:  # Check if reference number is already set
+    if target.reference_number:
         return
 
     session = Session(bind=connection)
-    # Retrieve the voucher_type code
+
+    # Get voucher type code
     voucher_type = session.query(VoucherType).filter_by(id=target.voucher_type_id).first()
     voucher_type_code = voucher_type.code.upper() if voucher_type and voucher_type.code else "DOC"
 
-    # Contstruct the pattern
     year = date.today().year
-    pattern = f"{voucher_type_code}-{year}-%"
+    year_prefix = f"-{year}-"
 
-    # Fetch the latest voucher
-    last_voucher = (
-        session.query(Voucher).filter(Voucher.reference_number.like(pattern)).order_by(Voucher.id.desc()).first()
-    )
+    # Count vouchers of this type for the year
+    type_count = session.query(Voucher).filter(Voucher.reference_number.like(f"{voucher_type_code}-{year}-%")).count()
 
-    # Set the next number sequence
-    new_seq = (
-        int(last_voucher.reference_number.split("-")[-1]) + 1 if last_voucher and last_voucher.reference_number else 1
-    )
-    # Assigne the generated reference number
-    target.reference_number = f"{voucher_type_code}-{year}-{new_seq:04d}"
+    # Count all vouchers for the year
+    overall_count = session.query(Voucher).filter(Voucher.reference_number.like(f"%{year_prefix}%")).count()
+
+    # Increment both counts
+    type_seq = type_count + 1
+    overall_seq = overall_count + 1
+
+    # Format reference number
+    target.reference_number = f"{voucher_type_code}-{year}-{type_seq:04d}-{overall_seq:04d}"
