@@ -1,8 +1,8 @@
-<!--app/templates/voucher/_today.html-->
+<!-- app/templates/voucher/_today.html -->
 <table class="vouchers-today">
   <thead>
     <tr class="voucher-row text-muted">
-      <th class="ref_num">Reference #</th>
+      <th class="refnum-col text-center" scope="col">Reference Number</th>
     </tr>
   </thead>
 
@@ -10,17 +10,54 @@
     {% for voucher in vouchers %}
       <tr
         class="voucher-row"
-        hx-get="{{ url_for('voucher.particulars', voucher_id=voucher.id) }}"
-        hx-target="#particulars .card-body"
+        hx-get="{{ url_for('voucher.details_preview', recent_voucher_id=voucher.id) }}"
+        hx-target="#voucher-details-preview"
         hx-swap="innerHTML"
         style="cursor: pointer;"
       >
-        <td class="refnum-col text-start">{{ voucher.reference_number }}</td>
+        <td class="refnum-col text-center">{{ voucher.reference_number }}</td>
       </tr>
     {% else %}
       <tr>
-        <td colspan="7" class="text-center text-muted">No vouchers found</td>
+        <td colspan="1" class="text-center text-muted">No vouchers found</td>
       </tr>
     {% endfor %}
   </tbody>
 </table>
+
+<style>
+  .vouchers-today {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  .vouchers-today th,
+  .vouchers-today td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    white-space: nowrap;
+    border-bottom: 1px solid #dee2e6;
+    text-align: center;
+  }
+
+  .vouchers-today thead th {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 2;
+    font-weight: 600;
+  }
+
+  .vouchers-today tbody tr:hover {
+    background-color: #f1f3f5;
+  }
+
+  .refnum-col {
+    width: 6rem;
+    text-align: left;
+  }
+</style>

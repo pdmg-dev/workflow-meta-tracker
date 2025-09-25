@@ -1,6 +1,6 @@
 # app/blueprints/vouchers/views.py
 
-from datetime import date, datetime
+from datetime import datetime
 
 import pytz
 from flask import current_app, json, make_response, redirect, render_template, request, url_for
@@ -55,7 +55,12 @@ def new_voucher():
                 response = make_response(render_template("voucher/form.html", form=fresh_form))
                 # HX-Trigger with JSON payload so JS can read e.detail.voucherSaved.message
                 response.headers["HX-Trigger"] = json.dumps(
-                    {"voucherSaved": {"message": f"Voucher {new_voucher.reference_number} saved."}}
+                    {
+                        "voucherSaved": {
+                            "message": f"Voucher {new_voucher.reference_number} saved.",
+                            "id": new_voucher.id,
+                        }
+                    }
                 )
                 return response
             return redirect(url_for("voucher.new_voucher"))
@@ -66,13 +71,45 @@ def new_voucher():
             return make_response(render_template("voucher/form.html", form=form), 200)
         return render_template("new_voucher.html", form=form)
     # Request method: GET -> Show empty form
-    start = datetime.combine(date.today(), datetime.min.time())
-    end = datetime.combine(date.today(), datetime.max.time())
+    tz = pytz.UTC
+    today_utc = datetime.now(tz).date()
+    start = datetime.combine(today_utc, datetime.min.time()).replace(tzinfo=tz)
+    end = datetime.combine(today_utc, datetime.max.time()).replace(tzinfo=tz)
+    vouchers = Voucher.query.filter(Voucher.date_received.between(start, end)).order_by(
+        Voucher.date_received.desc(), Voucher.reference_number.desc()
+    )
+    # Get the most recent voucher (if any)
+    recent_voucher = vouchers.first_or_404() if vouchers.count() > 0 else None
+    return render_template(
+        "new_voucher.html",
+        form=form,
+        vouchers=vouchers,
+        recent_voucher_id=recent_voucher.id if recent_voucher else None,
+    )
+
+
+# app/blueprints/voucher/views.py
+@voucher_bp.route("/vouchers/today", methods=["GET"])
+@login_required
+def todays_vouchers():
+    tz = pytz.UTC
+    today_utc = datetime.now(tz).date()
+    start = datetime.combine(today_utc, datetime.min.time()).replace(tzinfo=tz)
+    end = datetime.combine(today_utc, datetime.max.time()).replace(tzinfo=tz)
 
     vouchers = Voucher.query.filter(Voucher.date_received.between(start, end)).order_by(
         Voucher.date_received.desc(), Voucher.reference_number.desc()
     )
-    return render_template("new_voucher.html", form=form, vouchers=vouchers)
+    return render_template("voucher/_today.html", vouchers=vouchers)
+
+
+@voucher_bp.route("/voucher/preview/<int:recent_voucher_id>", methods=["GET"])
+@login_required
+def details_preview(recent_voucher_id):
+    voucher = db.session.get(Voucher, recent_voucher_id)
+    if not voucher:
+        return "", 204
+    return render_template("voucher/_preview.html", voucher=voucher)
 
 
 # NOTE: Sample Preview
@@ -83,19 +120,6 @@ def particulars(voucher_id):
     if not voucher:
         return "", 204
     return render_template("voucher/_particulars.html", voucher=voucher)
-
-
-# app/blueprints/voucher/views.py
-@voucher_bp.route("/vouchers/today", methods=["GET"])
-@login_required
-def todays_vouchers():
-    start = datetime.combine(date.today(), datetime.min.time())
-    end = datetime.combine(date.today(), datetime.max.time())
-
-    vouchers = Voucher.query.filter(Voucher.date_received.between(start, end)).order_by(
-        Voucher.date_received.desc(), Voucher.reference_number.desc()
-    )
-    return render_template("voucher/_today.html", vouchers=vouchers)
 
 
 @voucher_bp.route("/voucher/bulk-update", methods=["POST"])
