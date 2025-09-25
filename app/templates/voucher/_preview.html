@@ -1,0 +1,62 @@
+<!-- app/templates/voucher/_preview.html -->
+<div class="voucher-preview container-fluid">
+  <table class="table table-borderless mb-4">
+    <tbody>
+      <tr>
+        <th scope="row">Reference Number</th>
+        <td>{{ voucher.reference_number }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Payee</th>
+        <td>{{ voucher.payee }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Amount</th>
+        <td>₱{{ "{:,.2f}".format(voucher.amount) }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Particulars</th>
+        <td>{{ voucher.particulars }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Origin</th>
+        <td>{{ voucher.origin }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Date Received</th>
+        <td>{{ voucher.date_received.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Voucher Type</th>
+        <td>{{ voucher.voucher_type.name }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Status</th>
+        <td>{{ voucher.status.name }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table class="table table-borderless">
+    <tbody>
+      <tr>
+        <th scope="row">Encoded By</th>
+        <td>{{ voucher.encoder.full_name }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Encoded At</th>
+        <td>{{ voucher.encoded_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+      </tr>
+      {% if voucher.updater %}
+        <tr>
+          <th scope="row">Last Updated By</th>
+          <td>{{ voucher.updater.full_name }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Updated At</th>
+          <td>{{ voucher.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>

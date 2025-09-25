@@ -192,7 +192,12 @@
       });
     });
 
-    document.body.addEventListener("voucherSaved", () => {
+    document.body.addEventListener("voucherSaved", (e) => {
+      const newId = e.detail.id; // <-- grab the id from the trigger
+      htmx.ajax("GET", `/voucher/preview/${newId}`, {
+        target: "#voucher-details-preview",
+        swap: "innerHTML",
+      });
       htmx.ajax("GET", "{{ url_for('voucher.todays_vouchers') }}", {
         target: "#todays-vouchers-body",
         swap: "innerHTML",
