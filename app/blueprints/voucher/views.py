@@ -109,7 +109,15 @@ def details_preview(recent_voucher_id):
     voucher = db.session.get(Voucher, recent_voucher_id)
     if not voucher:
         return "", 204
-    return render_template("voucher/_preview.html", voucher=voucher)
+
+    # Order history by newest first
+    history = voucher.history.order_by(VoucherStatusHistory.updated_at.desc()).all()
+
+    return render_template(
+        "voucher/_preview.html",
+        voucher=voucher,
+        history=history,
+    )
 
 
 # NOTE: Sample Preview
@@ -127,7 +135,7 @@ def particulars(voucher_id):
 def bulk_update_status():
     ids = request.form.getlist("voucher_ids")
     if not ids:
-        return "", 204
+        return "No IDs selected", 204
 
     # if manager clicked a “Return” button you can pass ?target=returned
     explicit_code = request.form.get("target_status") or request.args.get("target")
@@ -172,7 +180,7 @@ def bulk_update_status():
                 voucher=v,
                 status=next_t.to_status,
                 updated_by_id=current_user.id,
-                remarks="Bulk smart update",
+                remarks=next_t.to_status.remarks,
             )
         )
         updated += 1

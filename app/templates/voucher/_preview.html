@@ -59,4 +59,111 @@
       {% endif %}
     </tbody>
   </table>
+  <h5 class="mt-4">Status History</h5>
+
+  <div class="voucher-status-history">
+    {% if history %}
+      <div class="status-history-grid">
+        {% for h in history %}
+          <div
+            class="history-item"
+            title="{{ (h.remarks or '') }} — {{ h.updated_by_user.full_name }} | {{ h.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}"
+          >
+            <div class="history-head d-flex justify-content-between align-items-start mb-1">
+              <span class="status-badge small">{{ h.status.name }}</span>
+              <small class="text-muted small">{{ h.updated_at.strftime('%b %d %H:%M') }}</small>
+            </div>
+
+            <div class="history-remarks text-truncate small">{{ h.remarks or '' }}</div>
+
+            <div class="history-meta small text-muted mt-1">{{ h.updated_by_user.full_name.split()[0] }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-muted text-center small">No history available</div>
+    {% endif %}
+  </div>
 </div>
+
+{% block style %}
+  <style>
+    /* 🔹 Compact ONLY the first two tables (details + meta), not the history table */
+    .voucher-preview table:not(.table-striped) {
+      font-size: 0.8rem; /* smaller text */
+    }
+    .voucher-preview table:not(.table-striped) th,
+    .voucher-preview table:not(.table-striped) td {
+      padding: 0.25rem 0.4rem; /* tighter padding */
+      line-height: 1.2; /* shorter row height */
+      vertical-align: top;
+    }
+
+    /* Optional: slightly smaller section heading above history */
+    .voucher-preview h5 {
+      font-size: 1rem;
+      margin-top: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* -------- compact status history styles (preview-only) -------- */
+    .voucher-preview .voucher-status-history {
+      width: 100%;
+    }
+
+    .voucher-preview .status-history-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr); /* two columns to save vertical space */
+      gap: 0.35rem;
+      align-items: start;
+    }
+
+    /* single column for narrow screens */
+    @media (max-width: 900px) {
+      .voucher-preview .status-history-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .voucher-preview .history-item {
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      min-height: 2.1rem;
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    .voucher-preview .status-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      padding: 0.14rem 0.35rem;
+      border-radius: 0.35rem;
+      background: rgba(0, 0, 0, 0.03);
+      color: #222;
+    }
+
+    .voucher-preview .history-remarks {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 0.78rem;
+    }
+
+    .voucher-preview .history-meta {
+      font-size: 0.7rem;
+      color: #6c757d;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* optional: reduce spacing in the larger tables above to free vertical space */
+    .voucher-preview table.table-borderless td,
+    .voucher-preview table.table-borderless th {
+      padding-top: 0.3rem;
+      padding-bottom: 0.3rem;
+      vertical-align: top;
+    }
+  </style>
+{% endblock %}
