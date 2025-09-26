@@ -36,16 +36,81 @@
 
         <div id="table-container" class="table-container scroll-area">{% include 'voucher/_table.html' %}</div>
       </div>
+      <div class="card" id="voucher-details-card">
+        <div class="card-header"><p>Details</p></div>
+        <div class="card-body" id="voucher-details-preview">
+          <div class="text-muted">Select a voucher to see details.</div>
+        </div>
+      </div>
     </div>
   </div>
+{% endblock %}
+
+{% block script %}
+  <script>
+    function initVoucherTable() {
+      const container = document.querySelector("#table-container");
+      const rows = Array.from(container.querySelectorAll(".voucher-row"));
+      const preview = "#voucher-details-preview";
+      let currentIndex = -1;
+
+      function setActive(idx) {
+        if (idx < 0 || idx >= rows.length) return;
+        if (currentIndex !== -1) rows[currentIndex].classList.remove("active-row");
+        currentIndex = idx;
+        const row = rows[idx];
+        row.classList.add("active-row");
+        row.focus({ preventScroll: true });
+        row.scrollIntoView({ block: "nearest" });
+        htmx.ajax("GET", `/voucher/preview/${row.dataset.voucherId}`, preview);
+      }
+
+      rows.forEach((row, i) => row.addEventListener("click", () => setActive(i)));
+
+      document.addEventListener("keydown", function handleKeys(e) {
+        if (currentIndex === -1) return;
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          setActive(Math.min(currentIndex + 1, rows.length - 1));
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          setActive(Math.max(currentIndex - 1, 0));
+        }
+      });
+
+      if (rows.length) setActive(0);
+    }
+
+    // run once on initial page load
+    document.addEventListener("DOMContentLoaded", initVoucherTable);
+
+    // run again whenever HTMX swaps in a fresh table
+    document.addEventListener("htmx:afterSwap", (e) => {
+      if (e.target.id === "table-container") initVoucherTable();
+    });
+  </script>
 {% endblock %}
 
 {% block style %}
   <style>
     .vouchers {
       display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 1rem;
       min-height: 0;
       overflow: hidden;
+    }
+
+    /* Remove native black focus ring */
+    .voucher-row:focus {
+      outline: none;
+    }
+
+    /* Our custom highlight */
+    .voucher-table tbody tr.active-row {
+      background-color: #e7f1ff;
+      transition: background-color 0.2s ease-in-out;
+      font-weight: 600;
     }
   </style>
 {% endblock %}

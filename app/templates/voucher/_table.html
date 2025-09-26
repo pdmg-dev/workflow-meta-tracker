@@ -1,7 +1,7 @@
 <form id="update-status-form">
   <table class="voucher-table">
     <thead>
-      <tr class="voucher-row">
+      <tr>
         <th class="checkbox-col">
           <input type="checkbox" id="select-all" />
         </th>
@@ -18,14 +18,15 @@
       {% for voucher in vouchers %}
         <tr
           class="voucher-row"
-          hx-get="{{ url_for('voucher.particulars', voucher_id=voucher.id) }}"
-          hx-target="#particulars .card-body"
+          data-voucher-id="{{ voucher.id }}"
+          tabindex="0"
+          hx-get="{{ url_for('voucher.details_preview', voucher_id=voucher.id) }}"
+          hx-target="#voucher-details-preview"
           hx-swap="innerHTML"
-          style="cursor: pointer;"
         >
           <td class="checkbox-col">
             <input type="checkbox" name="voucher_ids" value="{{ voucher.id }}" />
-          </td> 
+          </td>
           <td class="refnum-col text-start">{{ voucher.reference_number }}</td>
           <td class="payee-col text-start fw-bold">{{ voucher.payee }}</td>
           <td class="amount-col text-end">{{ "{:,.2f}".format(voucher.amount) }}</td>
@@ -59,8 +60,6 @@
   </table>
 </form>
 
-
-
 <script>
   // static/js/voucher-table.js
   (function () {
@@ -84,6 +83,65 @@
       }
     });
   })();
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const container = document.querySelector("#table-container");
+    const rows = Array.from(container.querySelectorAll(".voucher-row"));
+    const preview = "#voucher-details-preview";
+    let currentIndex = -1;
+
+    // --- Core function to change focus/highlight + load details
+    function setActive(idx) {
+      if (idx < 0 || idx >= rows.length) return;
+
+      if (currentIndex !== -1) rows[currentIndex].classList.remove("active-row");
+      currentIndex = idx;
+
+      const row = rows[idx];
+      row.classList.add("active-row");
+      row.focus({ preventScroll: true }); // keep keyboard focus for arrow keys
+      row.scrollIntoView({ block: "nearest" });
+    }
+
+    // --- Click on row: focus & load
+    rows.forEach((row, i) => row.addEventListener("click", () => setActive(i)));
+
+    // --- Arrow-key navigation
+    document.addEventListener("keydown", (e) => {
+      if (currentIndex === -1) return;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setActive(Math.min(currentIndex + 1, rows.length - 1));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (currentIndex > 0) {
+          setActive(currentIndex - 1);
+        } else {
+          // already at first row: just keep focus, do not scroll
+          rows[0].focus({ preventScroll: true });
+        }
+      }
+    });
+
+    // --- Remove highlight if user pans/scrolls with touchpad or mouse-wheel
+    let scrollTimer;
+    container.addEventListener("scroll", () => {
+      if (scrollTimer) clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        if (!document.activeElement || document.activeElement.tagName !== "TR") {
+          // only clear if we aren't arrow-keying
+          if (currentIndex !== -1) {
+            rows[currentIndex].classList.remove("active-row");
+            currentIndex = -1;
+          }
+        }
+      }, 150); // fires shortly after user stops scrolling
+    });
+
+    // --- Auto-select first row on page load
+    if (rows.length) setActive(0);
+  });
 </script>
 
 <style>
@@ -133,10 +191,6 @@
     text-align: right;
   }
 
-  .voucher-table tbody tr:hover {
-    background-color: #f1f3f5; /* subtle hover effect */
-  }
-
   .voucher-table td {
     overflow: hidden;
     white-space: nowrap;
@@ -175,5 +229,17 @@
   .voucher-table th.status-col,
   .voucher-table td.status-col {
     width: 5rem;
+  }
+  /* highlight the row that is currently in view */
+  .voucher-table tbody tr.active-row {
+    background-color: #e7f1ff; /* light blue background */
+    transition: background-color 0.2s ease-in-out;
+  }
+  .voucher-table tbody tr.active-row td {
+    font-weight: 600; /* optional bold text */
+  }
+
+  .voucher-table tbody tr {
+    scroll-margin-top: 40px; /* match or slightly exceed header height */
   }
 </style>

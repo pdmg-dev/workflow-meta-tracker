@@ -10,7 +10,7 @@
     {% for voucher in vouchers %}
       <tr
         class="voucher-row"
-        hx-get="{{ url_for('voucher.details_preview', recent_voucher_id=voucher.id) }}"
+        hx-get="{{ url_for('voucher.details_preview', voucher_id=voucher.id) }}"
         hx-target="#voucher-details-preview"
         hx-swap="innerHTML"
         style="cursor: pointer;"
