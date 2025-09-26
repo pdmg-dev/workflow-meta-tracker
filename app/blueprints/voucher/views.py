@@ -103,24 +103,16 @@ def todays_vouchers():
     return render_template("voucher/_today.html", vouchers=vouchers)
 
 
-@voucher_bp.route("/voucher/preview/<int:recent_voucher_id>", methods=["GET"])
+@voucher_bp.route("/voucher/preview/<int:voucher_id>")
 @login_required
-def details_preview(recent_voucher_id):
-    voucher = db.session.get(Voucher, recent_voucher_id)
+def details_preview(voucher_id):
+    voucher = db.session.get(Voucher, voucher_id)
     if not voucher:
         return "", 204
-
-    # Order history by newest first
     history = voucher.history.order_by(VoucherStatusHistory.updated_at.desc()).all()
-
-    return render_template(
-        "voucher/_preview.html",
-        voucher=voucher,
-        history=history,
-    )
+    return render_template("voucher/_preview.html", voucher=voucher, history=history)
 
 
-# NOTE: Sample Preview
 @voucher_bp.route("/voucher/<int:voucher_id>")
 @login_required
 def particulars(voucher_id):
