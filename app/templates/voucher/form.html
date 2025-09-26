@@ -7,7 +7,7 @@
 >
   {{ form.hidden_tag() }}
 
-  <div class="row g-3 d-flex">
+  <div class="row g-3">
     <!-- Voucher Type -->
     <div class="col-md-4">
       {{ form.voucher_type.label(class="form-label") }}
@@ -90,14 +90,14 @@
     </div>
 
     <!-- Particulars -->
-    <div class="col-12 d-flex flex-column">
+    <div class="col-12 d-flex flex-column flex-grow-1">
       {{ form.particulars.label(class="form-label") }}
       {{
         form.particulars(
-             class="form-control flex-grow-1" + (' is-invalid' if form.particulars.errors else ''),
-             rows="6",
+             class="form-control" + (' is-invalid' if form.particulars.errors else ''),
              maxlength=2000,
-             required=True
+             required=True,
+             rows="8"
         )
       }}
       {% for err in form.particulars.errors %}
@@ -107,46 +107,30 @@
   </div>
 
   <div class="d-flex justify-content-between">
-    <a href="{{ url_for('tracker.view_vouchers') }}" class="btn btn-outline-secondary">← Back</a>
-    <button type="submit" class="btn btn-primary px-4"><i class="bi bi-plus-circle mx-2"></i>Save & Add Another</button>
+    <a href="{{ url_for('tracker.view_vouchers') }}" class="btn btn-outline-secondary">Cancel</a>
+    <button type="submit" class="btn btn-primary">Save</button>
   </div>
 </form>
 
 <script>
   (() => {
-    // -----------------------------
-    // Prevent double-binding
-    // -----------------------------
-    // HTMX can swap content, which might reload this script.
-    // We use a global flag to ensure all event listeners bind only once.
+    // Use a global flag to ensure all event listeners bind only once.
     if (window.__voucherFormBound) return;
     window.__voucherFormBound = true;
 
-    // -----------------------------
-    // Constants
-    // -----------------------------
-    // The container ID for the voucher form.
     const FORM_CONTAINER_ID = "entry-form-container";
 
-    // -----------------------------
-    // Helpers for focusing elements
-    // -----------------------------
-
-    /** Safely focus an element without scrolling the page */
+    // Safely focus an element without scrolling the page
     const focusElementSafely = (element) => {
       if (!element) return;
       try {
-        // Modern browsers support preventScroll
         element.focus({ preventScroll: true });
       } catch {
-        // Fallback if preventScroll is unsupported
         element.focus();
       }
     };
 
-    /** Get the first focusable field in a container
-     *  Pattern: prefer [data-autofocus], otherwise find any enabled input/select/textarea or positive tabindex
-     */
+    // Get the first focusable field in a container
     const getFirstFocusableField = (formContainer) => {
       return (
         formContainer.querySelector("[data-autofocus]") ||
@@ -156,14 +140,12 @@
       );
     };
 
-    /** Focus the first field in the container */
+    // Focus the first field in the container
     const focusFirstFieldInContainer = (formContainer) => {
       focusElementSafely(getFirstFocusableField(formContainer));
     };
 
-    /** Focus the first field that currently has a validation error
-     *  Returns true if an invalid field was found and focused
-     */
+    // Focus the first field that currently has a validation error
     const focusFirstInvalidField = (formContainer) => {
       const invalidField = formContainer.querySelector("input.is-invalid, select.is-invalid, textarea.is-invalid");
       if (!invalidField) return false;
@@ -171,12 +153,9 @@
       return true;
     };
 
-    // -----------------------------
-    // 1) Handle successful voucher save
-    // -----------------------------
-    // Pattern: HTMX may swap the form even on success, so we wait for the next paint
-    // and a small timeout to ensure DOM classes are applied.
-    // Focus first invalid field if it exists, else focus first field.
+    /* HTMX may swap the form even on success, so we wait for the next paint 
+    and a small timeout to ensure DOM classes are applied.
+    Focus first invalid field if it exists, else focus first field. */
     document.addEventListener("voucherSaved", () => {
       showToast("Voucher saved successfully.", "success");
 
@@ -192,12 +171,7 @@
       });
     });
 
-
-    // -----------------------------
-    // 2) Focus logic after HTMX swaps the form (for validation errors)
-    // -----------------------------
-    // Pattern: wait for the next paint, then check for invalid fields
-    // If none exist, fallback to the first field
+    // Focus logic after HTMX swaps the form (for validation errors)
     document.addEventListener("htmx:afterSwap", (event) => {
       const formContainer = event.detail?.target;
       if (!formContainer || formContainer.id !== FORM_CONTAINER_ID) return;
@@ -213,10 +187,7 @@
       });
     });
 
-    // -----------------------------
-    // 3) Keyboard shortcut: Ctrl+Enter submits the form
-    // -----------------------------
-    // Pattern: listen for keydown globally, find the closest form, submit it
+    // Keyboard shortcut: Ctrl+Enter submits the form
     document.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && event.ctrlKey) {
         const currentForm = event.target?.closest("form");
@@ -227,10 +198,8 @@
       }
     });
 
-    // -----------------------------
-    // 4) Disable submit button during HTMX requests
-    // -----------------------------
-    // Pattern: prevent double submission by disabling the submit button
+    // Disable submit button during HTMX requests
+    // Prevent double submission by disabling the submit button
     // before the request and re-enable after it completes
     const setSubmitButtonState = (form, disabled) => {
       const submitButton = form.querySelector("button[type=submit]");
@@ -246,17 +215,9 @@
       const currentForm = event.target?.closest("form");
       if (currentForm) setSubmitButtonState(currentForm, false);
     });
-
-    // -----------------------------
-    // Patterns recap for future self:
-    // 1. Bind once using a global flag to prevent duplicate event listeners.
-    // 2. Always safely focus elements after DOM updates (requestAnimationFrame + small setTimeout).
-    // 3. Separate focus logic for errors vs successful save.
-    // 4. Use helper functions to avoid duplicating querySelector/focus logic.
-    // 5. Disable submit buttons during async requests to prevent double submissions.
-    // -----------------------------
   })();
 
+  // Limit the number of digits to input in amount
   function limitDigits(input, maxWhole, maxDecimal) {
     let value = input.value;
     let [whole, decimal = ""] = value.split(".");
@@ -269,3 +230,10 @@
     input.value = decimal ? `${whole}.${decimal}` : whole;
   }
 </script>
+
+<style>
+  textarea.form-control {
+    min-height: 0;
+    resize: none;
+  }
+</style>
