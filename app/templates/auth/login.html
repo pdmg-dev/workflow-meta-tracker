@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% block content %}
   <div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
+    <div class="col-md-4">
       <div class="card mt-5">
         <div class="card-body">
-          <h4 class="card-title text-center mb-4 text-primary">
+          <h4 class="card-title text-center mb-4 mt-4 text-primary">
             <strong>Login</strong>
           </h4>
           <form method="post">
@@ -43,7 +43,7 @@
             </div>
 
             <!-- Remember Me -->
-            <div class="form-check mb-3">
+            <div class="form-check mb-4">
               {{ form.remember(class="form-check-input", id="remember") }}
               <label class="form-check-label" for="remember">{{ form.remember.label.text }}</label>
             </div>
