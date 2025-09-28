@@ -3,12 +3,12 @@
 from datetime import datetime
 
 import pytz
-from flask import current_app, json, make_response, redirect, render_template, request, url_for
+from flask import current_app, json, jsonify, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app.extensions import db
 from app.models.user import Role
-from app.models.voucher import Voucher, VoucherStatus, VoucherStatusHistory, VoucherStatusTransition
+from app.models.voucher import Voucher, VoucherOrigin, VoucherStatus, VoucherStatusHistory, VoucherStatusTransition
 from app.utils.access_control import require_roles
 
 from . import voucher_bp
@@ -26,12 +26,18 @@ def new_voucher():
             payee = form.payee.data.strip()
             date_received = pytz.timezone("Asia/Manila").localize(form.date_received.data).astimezone(pytz.UTC)
             initial_status = db.session.query(VoucherStatus).filter_by(code="received").first()
+            origin_obj = db.session.query(VoucherOrigin).filter_by(name=form.origin.data).first()
+            if origin_obj:
+                current_app.logger.info("Origin name:", origin_obj.name)
+            else:
+                current_app.logger.debug("No origin found for code:", form.origin.data)
             # Create and save a voucher
+
             new_voucher = Voucher(
                 payee=payee,
                 amount=form.amount.data,
                 particulars=form.particulars.data,
-                origin=form.origin.data,
+                origin_id=origin_obj.id,
                 date_received=date_received,
                 voucher_type_id=form.voucher_type.data,
                 status_id=initial_status.id,
@@ -80,15 +86,36 @@ def new_voucher():
     )
     # Get the most recent voucher (if any)
     recent_voucher = vouchers.first_or_404() if vouchers.count() > 0 else None
+
+    origin_list = [str(o.name) for o in VoucherOrigin.query.filter(VoucherOrigin.name.isnot(None)).all()]
+    current_app.logger.debug("Origin list: %s", origin_list)
+
     return render_template(
         "new_voucher.html",
         form=form,
         vouchers=vouchers,
         recent_voucher_id=recent_voucher.id if recent_voucher else None,
+        origin_list=origin_list,
     )
 
 
-# app/blueprints/voucher/views.py
+# app/blueprints/vouchers/routes.py
+@voucher_bp.route("/voucher/origin-suggest")
+@login_required
+def origin_suggest():
+    q = request.args.get("q", "").strip()
+    if not q:
+        return jsonify([])
+    results = (
+        db.session.query(VoucherOrigin.name)
+        .filter(VoucherOrigin.name.ilike(f"%{q}%"))
+        .order_by(VoucherOrigin.name)
+        .limit(10)
+        .all()
+    )
+    return jsonify([r.name for r in results])
+
+
 @voucher_bp.route("/vouchers/today", methods=["GET"])
 @login_required
 def todays_vouchers():
