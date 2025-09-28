@@ -15,11 +15,11 @@ class Voucher(db.Model):
     payee = db.Column(db.String(120), nullable=False)
     amount = db.Column(db.Numeric(15, 2), nullable=False)
     particulars = db.Column(db.Text, nullable=False)
-    origin = db.Column(db.String(120), nullable=False)
 
     date_received = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     voucher_type_id = db.Column(db.Integer, db.ForeignKey("voucher_types.id"), nullable=False)
+    origin_id = db.Column(db.Integer, db.ForeignKey("voucher_origins.id"), nullable=False)
     status_id = db.Column(db.Integer, db.ForeignKey("voucher_statuses.id"), nullable=False)
 
     encoded_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
@@ -31,6 +31,7 @@ class Voucher(db.Model):
     )
 
     voucher_type = db.relationship("VoucherType", back_populates="vouchers", lazy="joined")
+    origin = db.relationship("VoucherOrigin", back_populates="vouchers", lazy="joined")
     status = db.relationship("VoucherStatus", back_populates="vouchers", lazy="joined")
 
     encoder = db.relationship("User", foreign_keys=[encoded_by_id], back_populates="encoded_vouchers")
@@ -50,6 +51,16 @@ class VoucherType(db.Model):
 
     vouchers = db.relationship("Voucher", back_populates="voucher_type")
     roles = db.relationship("Role", secondary=role_voucher_types, back_populates="voucher_types")
+
+
+class VoucherOrigin(db.Model):
+    __tablename__ = "voucher_origins"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    code = db.Column(db.String(10), unique=True, nullable=False)
+
+    vouchers = db.relationship("Voucher", back_populates="origin")
 
 
 class VoucherStatus(db.Model):

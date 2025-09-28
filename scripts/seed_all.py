@@ -1,3 +1,4 @@
+from .seed_origin import seed_voucher_origin
 from .seed_roles import seed_roles
 from .seed_statuses import seed_statuses
 from .seed_transitions import seed_transitions
@@ -11,6 +12,7 @@ def seed_all():
     seed_voucher_types()
     seed_statuses()
     seed_transitions()
+    seed_voucher_origin()
 
 
 if __name__ == "__main__":
