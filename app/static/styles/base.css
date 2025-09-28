@@ -21,7 +21,6 @@ main {
 
 /* # Global - Buttons: Smooth corners + gentle shadow*/
 .btn {
-  border-radius: 0.5rem;
   box-shadow: var(--bs-box-shadow-sm);
   transition:
     box-shadow 0.2s ease,
@@ -86,7 +85,6 @@ main {
   flex-direction: column;
   flex-grow: 1;
   border: none;
-  border-radius: 1rem;
   min-height: 0;
 }
 
