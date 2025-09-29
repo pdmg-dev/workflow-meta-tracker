@@ -20,7 +20,7 @@
           class="voucher-row"
           data-voucher-id="{{ voucher.id }}"
           tabindex="0"
-          hx-get="{{ url_for('voucher.details_preview', voucher_id=voucher.id) }}"
+          hx-get="{{ url_for('voucher.status_history', voucher_id=voucher.id) }}"
           hx-target="#voucher-details-preview"
           hx-swap="innerHTML"
         >
@@ -84,6 +84,7 @@
     });
   })();
 
+  // Auto preview on focus
   document.addEventListener("DOMContentLoaded", function () {
     const container = document.querySelector("#table-container");
     const rows = Array.from(container.querySelectorAll(".voucher-row"));

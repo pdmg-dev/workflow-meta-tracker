@@ -140,13 +140,14 @@ def details_preview(voucher_id):
     return render_template("voucher/_preview.html", voucher=voucher, history=history)
 
 
-@voucher_bp.route("/voucher/<int:voucher_id>")
+@voucher_bp.route("/voucher/history/<int:voucher_id>")
 @login_required
-def particulars(voucher_id):
+def status_history(voucher_id):
     voucher = db.session.get(Voucher, voucher_id)
     if not voucher:
         return "", 204
-    return render_template("voucher/_particulars.html", voucher=voucher)
+    history = voucher.history.order_by(VoucherStatusHistory.updated_at.desc()).all()
+    return render_template("voucher/_history.html", voucher=voucher, history=history)
 
 
 @voucher_bp.route("/voucher/bulk-update", methods=["POST"])
