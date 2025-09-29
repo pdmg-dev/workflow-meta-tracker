@@ -5,6 +5,7 @@ from app.models.voucher import VoucherType
 def seed_voucher_types():
     default_voucher_types = [
         {"name": "Payroll", "code": "PAY"},
+        {"name": "Salary", "code": "SAL"},
         {"name": "Travel", "code": "TEV"},
         {"name": "Gasoline", "code": "GAS"},
         {"name": "Telephone", "code": "TEL"},
