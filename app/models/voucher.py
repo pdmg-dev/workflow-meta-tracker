@@ -16,18 +16,20 @@ class Voucher(db.Model):
     amount = db.Column(db.Numeric(15, 2), nullable=False)
     particulars = db.Column(db.Text, nullable=False)
 
-    date_received = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    date_received = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 
     voucher_type_id = db.Column(db.Integer, db.ForeignKey("voucher_types.id"), nullable=False)
     origin_id = db.Column(db.Integer, db.ForeignKey("voucher_origins.id"), nullable=False)
     status_id = db.Column(db.Integer, db.ForeignKey("voucher_statuses.id"), nullable=False)
 
     encoded_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    encoded_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    encoded_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     updated_by_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     updated_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+        db.DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
     )
 
     voucher_type = db.relationship("VoucherType", back_populates="vouchers", lazy="joined")
@@ -97,8 +99,8 @@ class VoucherStatusHistory(db.Model):
     status_id = db.Column(db.Integer, db.ForeignKey("voucher_statuses.id"), nullable=False)
     updated_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 
     voucher = db.relationship("Voucher", back_populates="history")
     status = db.relationship("VoucherStatus", back_populates="histories")

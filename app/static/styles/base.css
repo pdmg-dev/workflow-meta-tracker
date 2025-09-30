@@ -10,6 +10,7 @@ body {
   padding: 1.5rem;
   background-color: lightgrey;
   font-family: "Inter", sans-serif;
+  scrollbar-gutter: stable; /* modern browsers, avoids layout jump */
 }
 
 main {

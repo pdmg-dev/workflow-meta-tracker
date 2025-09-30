@@ -22,44 +22,31 @@ def new_voucher():
     form = VoucherForm()
     if request.method == "POST":
         if form.validate_on_submit():
-            # Clean the form data and fetch default values
-            payee = form.payee.data.strip()
-            date_received = pytz.timezone("Asia/Manila").localize(form.date_received.data).astimezone(pytz.UTC)
-            initial_status = db.session.query(VoucherStatus).filter_by(code="received").first()
-            origin_obj = db.session.query(VoucherOrigin).filter_by(name=form.origin.data).first()
-            if origin_obj:
-                current_app.logger.info("Origin name:", origin_obj.name)
-            else:
-                current_app.logger.debug("No origin found for code:", form.origin.data)
-            # Create and save a voucher
-
+            status = db.session.query(VoucherStatus).filter_by(code="received").first()
             new_voucher = Voucher(
-                payee=payee,
+                voucher_type_id=form.voucher_type.data,
+                origin_id=form.origin.data,
+                date_received=form.date_received.data,
+                payee=form.payee.data,
                 amount=form.amount.data,
                 particulars=form.particulars.data,
-                origin_id=origin_obj.id,
-                date_received=date_received,
-                voucher_type_id=form.voucher_type.data,
-                status_id=initial_status.id,
+                status_id=status.id,
                 encoded_by_id=current_user.id,
             )
             db.session.add(new_voucher)
-            db.session.commit()
-            # Create and save initial voucher status history
+            db.session.flush()
             history = VoucherStatusHistory(
-                remarks=initial_status.remarks,
                 voucher_id=new_voucher.id,
                 status_id=new_voucher.status_id,
+                remarks=status.remarks,
                 updated_by_id=new_voucher.encoded_by_id,
             )
             db.session.add(history)
             db.session.commit()
 
-            # HTMX partial refresh: return a new blank form + trigger toast
             if request.headers.get("HX-Request"):
-                fresh_form = VoucherForm(formdata=None)  # Make sure the form has no data inputs
+                fresh_form = VoucherForm(formdata=None)
                 response = make_response(render_template("voucher/form.html", form=fresh_form))
-                # HX-Trigger with JSON payload so JS can read e.detail.voucherSaved.message
                 response.headers["HX-Trigger"] = json.dumps(
                     {
                         "voucherSaved": {
@@ -73,10 +60,9 @@ def new_voucher():
 
         if request.headers.get("HX-Request"):
             current_app.logger.warning("Form errors: %s", form.errors)
-
             return make_response(render_template("voucher/form.html", form=form), 200)
         return render_template("new_voucher.html", form=form)
-    # Request method: GET -> Show empty form
+
     tz = pytz.UTC
     today_utc = datetime.now(tz).date()
     start = datetime.combine(today_utc, datetime.min.time()).replace(tzinfo=tz)
@@ -85,10 +71,15 @@ def new_voucher():
         Voucher.date_received.desc(), Voucher.reference_number.desc()
     )
     # Get the most recent voucher (if any)
-    recent_voucher = vouchers.first_or_404() if vouchers.count() > 0 else None
+    recent_voucher = vouchers.first()
 
     origin_list = [str(o.name) for o in VoucherOrigin.query.filter(VoucherOrigin.name.isnot(None)).all()]
     current_app.logger.debug("Origin list: %s", origin_list)
+
+    ph_tz = pytz.timezone("Asia/Manila")
+    manila_date_received = datetime.now(pytz.UTC).astimezone(ph_tz)
+    if form.date_received.data:
+        manila_date_received = form.date_received.data.astimezone(ph_tz).strftime("%Y-%m-%d %H:%M")
 
     return render_template(
         "new_voucher.html",
@@ -96,6 +87,7 @@ def new_voucher():
         vouchers=vouchers,
         recent_voucher_id=recent_voucher.id if recent_voucher else None,
         origin_list=origin_list,
+        manila_date_received=manila_date_received,
     )
 
 

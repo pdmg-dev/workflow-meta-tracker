@@ -1,12 +1,11 @@
 # app/blueprints/vouchers/forms.py
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 
 import pytz
 from flask_wtf import FlaskForm
 from wtforms import (
-    DateTimeLocalField,
     DecimalField,
     SelectField,
     StringField,
@@ -16,11 +15,14 @@ from wtforms import (
 from wtforms.validators import InputRequired, Length, NumberRange, Regexp, ValidationError
 
 from app.extensions import db
-from app.models.voucher import VoucherType
+from app.models.voucher import VoucherOrigin, VoucherType
 
 
 class VoucherForm(FlaskForm):
     voucher_type = SelectField("Type", coerce=int, validators=[InputRequired(message="Please select a voucher type.")])
+    origin = SelectField("Origin", coerce=int, validators=[InputRequired(message="Please select an origin.")])
+    date_received = StringField("Date Received", validators=[InputRequired(message="Please pick the date received.")])
+
     payee = StringField(
         "Payee",
         validators=[
@@ -47,19 +49,6 @@ class VoucherForm(FlaskForm):
             Length(max=2000, message="Particulars too long (max 2000 chars)."),
         ],
     )
-    origin = StringField(
-        "Origin",
-        validators=[
-            InputRequired(message="Origin is required."),
-            Length(max=120, message="Origin name is too long. Keep it under 120 characters."),
-        ],
-    )
-    date_received = DateTimeLocalField(
-        "Date Received",
-        format="%Y-%m-%dT%H:%M",
-        default=lambda: datetime.now(pytz.timezone("Asia/Manila")),
-        validators=[InputRequired(message="Please pick the date received.")],
-    )
     submit = SubmitField("Save")
 
     def __init__(self, *args, **kwargs):
@@ -67,10 +56,18 @@ class VoucherForm(FlaskForm):
         self.voucher_type.choices = [
             (vt.id, vt.name) for vt in db.session.query(VoucherType).order_by(VoucherType.name.asc()).all()
         ]
+        self.origin.choices = [
+            (o.id, o.code) for o in db.session.query(VoucherOrigin).order_by(VoucherOrigin.code.asc()).all()
+        ]
 
     def validate_date_received(self, field):
-        PH_TZ = pytz.timezone("Asia/Manila")
-        field_dt = PH_TZ.localize(field.data)
-        now_ph = datetime.now(PH_TZ)
-        if field_dt > now_ph:
+        try:
+            naive_local = datetime.strptime(field.data, "%Y-%m-%d %H:%M")
+        except ValueError as error:
+            raise ValidationError("Invalid date format.") from error
+
+        ph_tz = pytz.timezone("Asia/Manila")
+        aware_local = ph_tz.localize(naive_local)
+        if aware_local > datetime.now(ph_tz):
             raise ValidationError("Date cannot be in the future.")
+        field.data = aware_local.astimezone(timezone.utc)

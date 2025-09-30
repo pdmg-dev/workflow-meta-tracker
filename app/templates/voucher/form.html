@@ -6,58 +6,83 @@
   hx-swap="innerHTML"
 >
   {{ form.hidden_tag() }}
-
   <div class="row g-2">
-    <!-- Voucher Type -->
+    <!-- Type -->
     <div class="col-md-4">
-      {{ form.voucher_type.label(class="form-label") }}
-      {{
-        form.voucher_type(
-             class="form-select" + (' is-invalid' if form.voucher_type.errors else ''),
-             required=True,
-             id="voucher_type",
-             data_autofocus="true"
-        )
-      }}
-      {% for err in form.voucher_type.errors %}
-        <div class="invalid-feedback">{{ err }}</div>
-      {% endfor %}
+      <label for="typeDropdown" class="form-label">Type</label>
+      <div class="dropdown w-100">
+        <button
+          class="form-select w-100 text-start d-flex justify-content-between align-items-center
+             {{ 'is-invalid' if form.voucher_type.errors else '' }}"
+          type="button"
+          id="typeDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          {{ dict(form.voucher_type.choices).get(form.voucher_type.data, 'Select Type') }}
+        </button>
+        <ul class="dropdown-menu w-100 overflow-auto" style="max-height: 200px;" aria-labelledby="typeDropdown">
+          {% for value, label in form.voucher_type.choices %}
+            <li>
+              <button class="dropdown-item" type="button" data-value="{{ value }}">{{ label }}</button>
+            </li>
+          {% endfor %}
+        </ul>
+        <input type="hidden" name="voucher_type" id="voucherTypeHidden" value="{{ form.voucher_type.data or '' }}" />
+        {% for err in form.voucher_type.errors %}
+          <div class="invalid-feedback d-block">{{ err }}</div>
+        {% endfor %}
+      </div>
     </div>
 
     <!-- Origin -->
-    <div class="col-md-4 position-relative">
-      {{ form.origin.label(class="form-label") }}
-      {{
-        form.origin(
-             class="form-control" + (' is-invalid' if form.origin.errors else ''),
-             maxlength=120,
-             required=True,
-             id="originInput"
-        )
-      }}
-      <div class="dropdown-menu" id="originSuggestions"></div>
-
-      {% for err in form.origin.errors %}
-        <div class="invalid-feedback">{{ err }}</div>
-      {% endfor %}
+    <div class="col-md-4">
+      <label for="originDropdown" class="form-label">Origin</label>
+      <div class="dropdown w-100">
+        <button
+          class="form-select w-100 text-start d-flex justify-content-between align-items-center
+             {{ 'is-invalid' if form.origin.errors else '' }}"
+          type="button"
+          id="originDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          {{ dict(form.origin.choices).get(form.origin.data, 'Select Origin') }}
+        </button>
+        <ul class="dropdown-menu w-100 overflow-auto" style="max-height: 200px;" aria-labelledby="originDropdown">
+          {% for value, label in form.origin.choices %}
+            <li>
+              <button class="dropdown-item" type="button" data-value="{{ value }}">{{ label }}</button>
+            </li>
+          {% endfor %}
+        </ul>
+        <input type="hidden" name="origin" id="originHidden" value="{{ form.origin.data or '' }}" />
+        {% for err in form.origin.errors %}
+          <div class="invalid-feedback d-block">{{ err }}</div>
+        {% endfor %}
+      </div>
     </div>
 
     <!-- Date Received -->
     <div class="col-md-4">
-      {{ form.date_received.label(class="form-label") }}
-      {{
-        form.date_received(
-             class="form-control" + (' is-invalid' if form.date_received.errors else ''),
-             type="datetime-local",
-             required=True,
-             id="date_received",
-             value=form.date_received.data.strftime('%Y-%m-%dT%H:%M')
-                   if form.date_received.data else ''
-        )
-      }}
-      {% for err in form.date_received.errors %}
-        <div class="invalid-feedback">{{ err }}</div>
-      {% endfor %}
+      <label for="date_received" class="form-label">Date Received</label>
+      <div class="input-group position-relative" id="datePickerWrapper">
+        <input
+          type="text"
+          class="form-control{{ ' is-invalid' if form.date_received.errors else '' }}"
+          id="date_received"
+          name="date_received"
+          value="{{ form.date_received.data and form.date_received.data.strftime('%Y-%m-%d %H:%M') or manila_date_received }}"
+          data-default="{{ manila_date_received }}"
+          required
+        />
+        {% for err in form.date_received.errors %}
+          <div class="invalid-feedback d-block">{{ err }}</div>
+        {% endfor %}
+        <span class="input-group-text" data-td-toggle="datetimepicker" data-td-target="#date_received">
+          <i class="bi bi-calendar-event"></i>
+        </span>
+      </div>
     </div>
 
     <!-- Payee -->
@@ -67,7 +92,8 @@
         form.payee(
              class="form-control" + (' is-invalid' if form.payee.errors else ''),
              maxlength=120,
-             required=True
+             required=True,
+             **{'data-autofocus': True}
         )
       }}
       {% for err in form.payee.errors %}
@@ -119,157 +145,168 @@
 
 <script>
   (() => {
-    // Use a global flag to ensure all event listeners bind only once.
+    // ========= 1) Global one-time listeners =========
     if (window.__voucherFormBound) return;
     window.__voucherFormBound = true;
 
     const FORM_CONTAINER_ID = "entry-form-container";
 
-    // Safely focus an element without scrolling the page
-    const focusElementSafely = (element) => {
-      if (!element) return;
+    const focusElementSafely = (el) => {
+      if (!el) return;
       try {
-        element.focus({ preventScroll: true });
+        el.focus({ preventScroll: true });
       } catch {
-        element.focus();
+        el.focus();
       }
     };
 
-    // Get the first focusable field in a container
-    const getFirstFocusableField = (formContainer) => {
-      return (
-        formContainer.querySelector("[data-autofocus]") ||
-        formContainer.querySelector(
-          "select:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])",
-        )
+    const getFirstFocusableField = (c) =>
+      c.querySelector("[data-autofocus]") ||
+      c.querySelector(
+        "select:not([disabled]), input:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex='-1'])",
       );
-    };
 
-    // Focus the first field in the container
-    const focusFirstFieldInContainer = (formContainer) => {
-      focusElementSafely(getFirstFocusableField(formContainer));
-    };
-
-    // Focus the first field that currently has a validation error
-    const focusFirstInvalidField = (formContainer) => {
-      const invalidField = formContainer.querySelector("input.is-invalid, select.is-invalid, textarea.is-invalid");
-      if (!invalidField) return false;
-      focusElementSafely(invalidField);
+    const focusFirstInvalidField = (c) => {
+      const invalid = c.querySelector("input.is-invalid, select.is-invalid, textarea.is-invalid, button.is-invalid");
+      if (!invalid) return false;
+      focusElementSafely(invalid);
       return true;
     };
 
-    /* HTMX may swap the form even on success, so we wait for the next paint 
-    and a small timeout to ensure DOM classes are applied.
-    Focus first invalid field if it exists, else focus first field. */
+    const focusFirstField = (c) => focusElementSafely(getFirstFocusableField(c));
+
     document.addEventListener("voucherSaved", () => {
       showToast("Voucher saved successfully.", "success");
-
-      const formContainer = document.getElementById(FORM_CONTAINER_ID);
-      if (!formContainer) return;
-
-      requestAnimationFrame(() => {
+      const c = document.getElementById(FORM_CONTAINER_ID);
+      if (!c) return;
+      requestAnimationFrame(() =>
         setTimeout(() => {
-          if (!focusFirstInvalidField(formContainer)) {
-            focusFirstFieldInContainer(formContainer);
-          }
-        }, 50); // Small delay gives browser time to apply DOM updates
-      });
+          if (!focusFirstInvalidField(c)) focusFirstField(c);
+        }, 50),
+      );
     });
 
-    // Focus logic after HTMX swaps the form (for validation errors)
-    document.addEventListener("htmx:afterSwap", (event) => {
-      const formContainer = event.detail?.target;
-      if (!formContainer || formContainer.id !== FORM_CONTAINER_ID) return;
-
-      requestAnimationFrame(() => {
-        if (focusFirstInvalidField(formContainer)) return;
-
+    document.addEventListener("htmx:afterSwap", (e) => {
+      const c = e.detail?.target;
+      if (c?.id !== FORM_CONTAINER_ID) return;
+      requestAnimationFrame(() =>
         setTimeout(() => {
-          if (!focusFirstInvalidField(formContainer)) {
-            focusFirstFieldInContainer(formContainer);
-          }
-        }, 50); // Allow browser to update classes/styles
-      });
+          if (!focusFirstInvalidField(c)) focusFirstField(c);
+        }, 50),
+      );
     });
 
-    // Keyboard shortcut: Ctrl+Enter submits the form
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" && event.ctrlKey) {
-        const currentForm = event.target?.closest("form");
-        if (currentForm) {
-          event.preventDefault();
-          currentForm.requestSubmit(); // Modern method to submit programmatically
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && e.ctrlKey) {
+        const f = e.target.closest("form");
+        if (f) {
+          e.preventDefault();
+          f.requestSubmit();
         }
       }
     });
 
-    // Disable submit button during HTMX requests
-    // Prevent double submission by disabling the submit button
-    // before the request and re-enable after it completes
-    const setSubmitButtonState = (form, disabled) => {
-      const submitButton = form.querySelector("button[type=submit]");
-      if (submitButton) submitButton.disabled = disabled;
+    const setSubmitState = (form, disabled) =>
+      form.querySelector("button[type=submit]")?.toggleAttribute("disabled", disabled);
+    document.addEventListener("htmx:beforeRequest", (e) => {
+      const f = e.target.closest("form");
+      if (f) setSubmitState(f, true);
+    });
+    document.addEventListener("htmx:afterRequest", (e) => {
+      const f = e.target.closest("form");
+      if (f) setSubmitState(f, false);
+    });
+
+    // ========= 2) Per-swap initializer =========
+    function initVoucherForm(container = document) {
+      // Dropdowns – guard each item so we only attach once
+      container.querySelectorAll("#typeDropdown + .dropdown-menu .dropdown-item").forEach((item) => {
+        if (item.__bound) return;
+        item.__bound = true;
+        item.addEventListener("click", (e) => {
+          document.getElementById("typeDropdown").textContent = e.target.textContent;
+          document.getElementById("voucherTypeHidden").value = e.target.dataset.value;
+        });
+      });
+
+      container.querySelectorAll("#originDropdown + .dropdown-menu .dropdown-item").forEach((item) => {
+        if (item.__bound) return;
+        item.__bound = true;
+        item.addEventListener("click", (e) => {
+          document.getElementById("originDropdown").textContent = e.target.textContent;
+          document.getElementById("originHidden").value = e.target.dataset.value;
+        });
+      });
+
+      // Tempus Dominus date picker – guard each input
+      container.querySelectorAll("input#date_received").forEach((input) => {
+        if (input.__td_initialized) return;
+        if (!window.tempusDominus) {
+          console.error("Tempus Dominus library not found.");
+          return;
+        }
+        const wrapper = document.getElementById("datePickerWrapper");
+        const picker = new tempusDominus.TempusDominus(wrapper, {
+          localization: { format: "yyyy-MM-dd HH:mm" },
+          display: {
+            theme: "light",
+            icons: {
+              type: "icons",
+              time: "bi bi-clock",
+              date: "bi bi-calendar-week",
+              up: "bi bi-arrow-up",
+              down: "bi bi-arrow-down",
+              previous: "bi bi-chevron-left",
+              next: "bi bi-chevron-right",
+              today: "bi bi-calendar-check",
+              clear: "bi bi-trash",
+              close: "bi bi-x",
+            },
+            buttons: { today: true, clear: true },
+            components: {
+              calendar: true,
+              date: true,
+              month: true,
+              year: true,
+              decades: false,
+              clock: true,
+              hours: true,
+              minutes: true,
+              seconds: false,
+            },
+            inline: false,
+            placement: "top",
+          },
+        });
+
+        // Set default date if an initial value exists
+        const defaultStr = input.dataset.default || input.value;
+        const m = defaultStr.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})$/);
+        if (m) picker.dates.setValue(new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]));
+
+        input.__td_initialized = true;
+        input.__td_instance = picker;
+      });
+    }
+
+    // Initial page load
+    document.addEventListener("DOMContentLoaded", () => initVoucherForm());
+
+    // Re-initialize after each HTMX swap of the form container
+    document.addEventListener("htmx:afterSwap", (e) => {
+      if (e.detail?.target?.id === FORM_CONTAINER_ID) {
+        initVoucherForm(e.detail.target);
+      }
+    });
+
+    // Optional numeric digit limiter for Amount
+    window.limitDigits = function (input, maxWhole, maxDecimal) {
+      let [whole, decimal = ""] = input.value.split(".");
+      if (whole.length > maxWhole) whole = whole.slice(0, maxWhole);
+      if (decimal.length > maxDecimal) decimal = decimal.slice(0, maxDecimal);
+      input.value = decimal ? `${whole}.${decimal}` : whole;
     };
-
-    document.addEventListener("htmx:beforeRequest", (event) => {
-      const currentForm = event.target?.closest("form");
-      if (currentForm) setSubmitButtonState(currentForm, true);
-    });
-
-    document.addEventListener("htmx:afterRequest", (event) => {
-      const currentForm = event.target?.closest("form");
-      if (currentForm) setSubmitButtonState(currentForm, false);
-    });
   })();
-
-  // Limit the number of digits to input in amount
-  function limitDigits(input, maxWhole, maxDecimal) {
-    let value = input.value;
-    let [whole, decimal = ""] = value.split(".");
-    if (whole.length > maxWhole) {
-      whole = whole.slice(0, maxWhole);
-    }
-    if (decimal.length > maxDecimal) {
-      decimal = decimal.slice(0, maxDecimal);
-    }
-    input.value = decimal ? `${whole}.${decimal}` : whole;
-  }
-
-  document.addEventListener("input", async (e) => {
-    if (!e.target.matches("#originInput")) return;
-
-    const originInput = e.target;
-    const suggestionsBox = originInput.closest(".position-relative").querySelector("#originSuggestions");
-
-    const q = originInput.value.trim();
-    if (!q) {
-      suggestionsBox.classList.remove("show");
-      return;
-    }
-
-    const res = await fetch(`/voucher/origin-suggest?q=${encodeURIComponent(q)}`);
-    const data = await res.json();
-
-    suggestionsBox.innerHTML = "";
-    data.forEach((name) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "dropdown-item";
-      btn.textContent = name;
-      btn.onclick = () => {
-        originInput.value = name;
-        suggestionsBox.classList.remove("show");
-      };
-      suggestionsBox.appendChild(btn);
-    });
-    suggestionsBox.classList.toggle("show", data.length > 0);
-  });
-
-  document.addEventListener("click", (e) => {
-    if (!e.target.closest("#originInput")) {
-      document.getElementById("originSuggestions")?.classList.remove("show");
-    }
-  });
 </script>
 
 {% block style %}
