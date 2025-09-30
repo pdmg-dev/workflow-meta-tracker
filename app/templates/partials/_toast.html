@@ -1,5 +1,5 @@
 <!-- templates/partials/_toast.html -->
-<div id="toastContainer" class="position-absolute bottom-0 end-0 p-4" style="z-index: 1080;">
+<div id="toastContainer" class="position-absolute bottom-0 end-0 p-4" style="z-index: 1080;" hx-swap-oob="true">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       {% for category, message in messages %}
