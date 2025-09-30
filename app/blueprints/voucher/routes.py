@@ -3,7 +3,7 @@
 from datetime import datetime
 
 import pytz
-from flask import current_app, json, jsonify, make_response, render_template, request
+from flask import flash, json, jsonify, make_response, render_template, request
 from flask_login import current_user, login_required
 
 from app.blueprints.voucher.services import create_voucher
@@ -21,10 +21,24 @@ from .forms import VoucherForm
 @require_roles("admin", "encoder")
 def new_voucher():
     form = VoucherForm()
+    tz_manila = pytz.timezone("Asia/Manila")
+
+    # Decide the value once at the start
+    if form.date_received.raw_data:
+        date_received_value = form.date_received.raw_data[0]
+    elif form.date_received.data:
+        date_received_value = form.date_received.data.astimezone(tz_manila).strftime("%Y-%m-%d %I:%M %p")
+    else:
+        date_received_value = datetime.now(tz_manila).strftime("%Y-%m-%d %I:%M %p")
+
     if request.method == "POST":
         if form.validate_on_submit():
             new_voucher = create_voucher(form, current_user)
+            flash("Voucher saved successfully!", "success")
+
+            # Fresh form → reset to current time
             fresh_form = VoucherForm(formdata=None)
+            date_received_value = datetime.now(tz_manila).strftime("%Y-%m-%d %I:%M %p")
 
             # Re-query today's vouchers
             tz = pytz.UTC
@@ -38,21 +52,21 @@ def new_voucher():
 
             # history for the preview
             history = new_voucher.history.order_by(VoucherStatusHistory.updated_at.desc()).all()
-            ph_tz = pytz.timezone("Asia/Manila")
-            manila_date_received = datetime.now(pytz.UTC).astimezone(ph_tz).strftime("%Y-%m-%d %I:%M %p")
+
             return render_template(
                 "voucher/_form_today_preview.html",
                 form=fresh_form,
                 vouchers=vouchers,
                 new_voucher=new_voucher,
                 history=history,
-                manila_date_received=manila_date_received,
+                date_received_value=date_received_value,
             )
+        return render_template(
+            "voucher/form.html",
+            form=form,
+            date_received_value=date_received_value,
+        )
 
-        # invalid form — just re-render the form itself
-        return render_template("voucher/form.html", form=form), 200
-
-    # --- GET stays as is ---
     tz = pytz.UTC
     today_utc = datetime.now(tz).date()
     start = datetime.combine(today_utc, datetime.min.time()).replace(tzinfo=tz)
@@ -63,15 +77,6 @@ def new_voucher():
     recent_voucher = vouchers.first()
 
     origin_list = [str(o.name) for o in VoucherOrigin.query.filter(VoucherOrigin.name.isnot(None)).all()]
-    current_app.logger.debug("Origin list: %s", origin_list)
-
-    ph_tz = pytz.timezone("Asia/Manila")
-    if form.date_received.data:
-        manila_date_received = form.date_received.data.astimezone(ph_tz)
-    else:
-        manila_date_received = datetime.now(pytz.UTC).astimezone(ph_tz)
-
-    manila_date_received_str = manila_date_received.strftime("%Y-%m-%d %I:%M %p")
 
     return render_template(
         "new_voucher.html",
@@ -79,7 +84,7 @@ def new_voucher():
         vouchers=vouchers,
         recent_voucher_id=recent_voucher.id if recent_voucher else None,
         origin_list=origin_list,
-        manila_date_received=manila_date_received_str,
+        date_received_value=date_received_value,
     )
 
 
