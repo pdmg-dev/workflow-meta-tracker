@@ -1,18 +1,29 @@
-// app/static/js/toast.js
 document.addEventListener("DOMContentLoaded", () => {
-    // Auto-show any server-rendered toasts
-    const toastElements = document.querySelectorAll("#toastContainer .toast");
+    initToasts(document);
+});
+
+document.addEventListener("htmx:afterSwap", (e) => {
+    initToasts(e.target);
+});
+
+function initToasts(container) {
+    if (!container) return;
+    const toastElements = container.querySelectorAll("#toastContainer .toast");
     toastElements.forEach((toastEl) => {
+        if (toastEl.__shown) return; // prevent double showing
+        toastEl.__shown = true;
+
         const toast = new bootstrap.Toast(toastEl);
         toast.show();
+
+        toastEl.addEventListener("hidden.bs.toast", () => {
+            toastEl.remove();
+        });
     });
-});
+}
 
 /**
  * Dynamically show a toast message
- * @param {string} message - The message to display
- * @param {string} type - Bootstrap contextual class (success, danger, info, warning)
- * @param {number} delay - Optional delay in ms (default: 3000)
  */
 function showToast(message, type = "info", delay = 3000) {
     const container = document.getElementById("toastContainer");
@@ -27,18 +38,13 @@ function showToast(message, type = "info", delay = 3000) {
     toastEl.setAttribute("data-bs-delay", delay);
 
     toastEl.innerHTML = `
-    <div class="d-flex">
-      <div class="toast-body">${message}</div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-    </div>
-  `;
+      <div class="d-flex">
+        <div class="toast-body">${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    `;
 
     container.appendChild(toastEl);
-
-    const toast = new bootstrap.Toast(toastEl);
-    toast.show();
-
-    toastEl.addEventListener("hidden.bs.toast", () => {
-        toastEl.remove();
-    });
+    initToasts(container);
 }
