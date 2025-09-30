@@ -7,7 +7,7 @@ from app.models.user import User
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
-from . import forms, views  # noqa: F401 E402
+from . import forms, routes  # noqa: F401 E402
 
 
 @login_manager.user_loader

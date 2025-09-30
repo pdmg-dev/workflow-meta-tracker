@@ -3,4 +3,4 @@ from flask import Blueprint
 
 voucher_bp = Blueprint("voucher", __name__)
 
-from . import forms, views  # noqa: E402 F401
+from . import forms, routes  # noqa: E402 F401
