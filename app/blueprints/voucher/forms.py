@@ -62,7 +62,7 @@ class VoucherForm(FlaskForm):
 
     def validate_date_received(self, field):
         try:
-            naive_local = datetime.strptime(field.data, "%Y-%m-%d %H:%M")
+            naive_local = datetime.strptime(field.data, "%Y-%m-%d %H:%M %p")
         except ValueError as error:
             raise ValidationError("Invalid date format.") from error
 

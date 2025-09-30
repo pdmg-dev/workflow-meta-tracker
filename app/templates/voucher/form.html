@@ -72,14 +72,14 @@
           class="form-control{{ ' is-invalid' if form.date_received.errors else '' }}"
           id="date_received"
           name="date_received"
-          value="{{ form.date_received.data and form.date_received.data.strftime('%Y-%m-%d %H:%M') or manila_date_received }}"
+          value="{% if form.date_received.data is not string and form.date_received.data %}{{ form.date_received.data.strftime('%Y-%m-%d %I:%M %p') }}{% else %}{{ manila_date_received }}{% endif %}"
           data-default="{{ manila_date_received }}"
           required
         />
         {% for err in form.date_received.errors %}
           <div class="invalid-feedback d-block">{{ err }}</div>
         {% endfor %}
-        <span class="input-group-text" data-td-toggle="datetimepicker" data-td-target="#date_received">
+        <span class="input-group-text" data-td-toggle="datetimepicker" data-td-target="#datePickerWrapper">
           <i class="bi bi-calendar-event"></i>
         </span>
       </div>
@@ -239,15 +239,14 @@
       });
 
       // Tempus Dominus date picker – guard each input
-      container.querySelectorAll("input#date_received").forEach((input) => {
-        if (input.__td_initialized) return;
+      container.querySelectorAll("#datePickerWrapper").forEach((wrapper) => {
+        if (wrapper.__td_initialized) return;
         if (!window.tempusDominus) {
           console.error("Tempus Dominus library not found.");
           return;
         }
-        const wrapper = document.getElementById("datePickerWrapper");
         const picker = new tempusDominus.TempusDominus(wrapper, {
-          localization: { format: "yyyy-MM-dd HH:mm" },
+          localization: { format: "yyyy-MM-dd hh:mm T" }, // T = Meridiem (PM)
           display: {
             theme: "light",
             icons: {
@@ -279,10 +278,24 @@
           },
         });
 
-        // Set default date if an initial value exists
-        const defaultStr = input.dataset.default || input.value;
-        const m = defaultStr.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})$/);
-        if (m) picker.dates.setValue(new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]));
+        // Prefer the explicit input value; fall back to dataset.default
+        const defaultStr = (input.value || input.dataset.default || "").trim();
+
+        // Try 12-hour with AM/PM first (e.g. 2025-09-30 07:45 PM)
+        const m12 = defaultStr.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{1,2}):(\d{2})\s*([APMapm]{2})$/);
+        if (m12) {
+          let hour = +m12[4];
+          const mer = m12[6].toUpperCase();
+          if (mer === "PM" && hour < 12) hour += 12;
+          if (mer === "AM" && hour === 12) hour = 0;
+          picker.dates.setValue(new Date(+m12[1], +m12[2] - 1, +m12[3], hour, +m12[5]));
+        } else {
+          // Fallback: 24-hour format without AM/PM (e.g. 2025-09-30 19:45)
+          const m24 = defaultStr.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{1,2}):(\d{2})$/);
+          if (m24) {
+            picker.dates.setValue(new Date(+m24[1], +m24[2] - 1, +m24[3], +m24[4], +m24[5]));
+          }
+        }
 
         input.__td_initialized = true;
         input.__td_instance = picker;
