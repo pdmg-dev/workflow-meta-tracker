@@ -8,7 +8,6 @@ from flask_login import current_user, login_required
 
 from app.blueprints.voucher.services import (
     create_voucher,
-    get_current_local_datetime,
     get_todays_vouchers,
 )
 from app.extensions import db
@@ -29,43 +28,31 @@ def new_voucher():
         if form.validate_on_submit():
             new_voucher = create_voucher(form, current_user)
             flash("Voucher saved successfully!", "success")
-            new_form = VoucherForm(formdata=None)  # Provide a clear form
-
+            new_form = VoucherForm(formdata=None)  # Load a new form
+            # Reload the fragments (cards) in the page
             return render_template(
-                "voucher/_new_voucher_fragments.html",  # Reload the cards in the new_voucher page
+                "voucher/_new_voucher_fragments.html",
                 form=new_form,
                 vouchers=get_todays_vouchers(),
                 new_voucher=new_voucher,
-                date_received_value=get_current_local_datetime(),
+            )
+        else:
+            # If form validation failed, retain input data
+            return render_template(
+                "voucher/form.html",
+                form=form,
             )
 
-        # If form validation failed, retain input data
-        if form.date_received.data:
-            date_received_value = form.date_received.data
-        else:
-            date_received_value = get_current_local_datetime()
-
-        return render_template(
-            "voucher/form.html",
-            form=form,
-            date_received_value=date_received_value,
-        )
-
-    # If cancel button is clicked, clear the form
+    # Load a new form, if cancel button is clicked
     if request.args.get("clear_form") == "true":
         form = VoucherForm(formdata=None)
-        return render_template(
-            "voucher/_clear_form.html",
-            form=form,
-            date_received_value=get_current_local_datetime(),
-        )
+        return render_template("voucher/form.html", form=form)
 
     # GET request contexts
     return render_template(
         "new_voucher.html",
         form=form,
         vouchers=get_todays_vouchers(),
-        date_received_value=get_current_local_datetime(),
     )
 
 
