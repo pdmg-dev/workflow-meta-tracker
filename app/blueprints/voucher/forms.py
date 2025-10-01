@@ -3,7 +3,6 @@
 from datetime import datetime, timezone
 from decimal import Decimal
 
-import pytz
 from flask_wtf import FlaskForm
 from wtforms import (
     DecimalField,
@@ -14,6 +13,7 @@ from wtforms import (
 )
 from wtforms.validators import InputRequired, Length, NumberRange, Regexp, ValidationError
 
+from app.blueprints.voucher.services import local_timezone, parse_local_datetime
 from app.extensions import db
 from app.models.voucher import VoucherOrigin, VoucherType
 
@@ -62,12 +62,10 @@ class VoucherForm(FlaskForm):
 
     def validate_date_received(self, field):
         try:
-            naive_local = datetime.strptime(field.data, "%Y-%m-%d %I:%M %p")
+            aware_local = parse_local_datetime(field.data)
         except ValueError as error:
-            raise ValidationError("Invalid date format.") from error
+            raise ValidationError(str(error)) from error
 
-        ph_tz = pytz.timezone("Asia/Manila")
-        aware_local = ph_tz.localize(naive_local)
-        if aware_local > datetime.now(ph_tz):
+        if aware_local > datetime.now(local_timezone):
             raise ValidationError("Date cannot be in the future.")
-        field.data = aware_local.astimezone(timezone.utc)
+        self.cleaned_date_received = aware_local.astimezone(timezone.utc)
