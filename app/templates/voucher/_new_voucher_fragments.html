@@ -2,10 +2,10 @@
 <div id="entry-form-container" class="h-100">{% include "voucher/_form.html" %}</div>
 
 <!-- Today's vouchers (OOB swap) -->
-<div id="todays-vouchers-body" hx-swap-oob="true">{% include "voucher/_today.html" %}</div>
+<div id="todays-vouchers" hx-swap-oob="true" class="h-100">{% include "voucher/_today.html" %}</div>
 
 <!-- Voucher preview (OOB swap) -->
-<div id="voucher-details-preview" hx-swap-oob="true" class="h-100">
+<div id="preview-voucher" hx-swap-oob="true" class="h-100">
   {% set voucher = new_voucher %}
   {% include "voucher/_preview.html" %}
 </div>

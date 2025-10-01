@@ -14,7 +14,7 @@
         <h6 class="card-header text-muted">Today's Vouchers</h6>
         <div class="card-body">
           <div class="table-container scroll-area">
-            <div id="todays-vouchers-body">{% include 'voucher/_today.html' %}</div>
+            <div id="todays-vouchers" class="h-100">{% include 'voucher/_today.html' %}</div>
           </div>
         </div>
       </div>
@@ -31,8 +31,13 @@
       <div class="card">
         <h6 class="card-header text-muted">Preview</h6>
         <div class="card-body">
-          <div id="voucher-details-preview" class="h-100">
-            <div class="text-muted">Select a voucher to show details preview.</div>
+          <div id="preview-voucher" class="h-100">
+            {% if voucher %}
+              {% set voucher = voucher %}
+              {% include "voucher/_preview.html" %}
+            {% else %}
+              <div>No voucher to show.</div>
+            {% endif %}
           </div>
         </div>
       </div>

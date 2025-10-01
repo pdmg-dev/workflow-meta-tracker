@@ -50,9 +50,7 @@ def new_voucher():
 
     # GET request contexts
     return render_template(
-        "new_voucher.html",
-        form=form,
-        vouchers=get_todays_vouchers(),
+        "new_voucher.html", form=form, vouchers=get_todays_vouchers(), voucher=get_todays_vouchers().first()
     )
 
 
