@@ -10,7 +10,6 @@ from app.blueprints.voucher.services import (
     create_voucher,
     get_current_local_datetime,
     get_todays_vouchers,
-    to_local_datetime,
 )
 from app.extensions import db
 from app.models.user import Role
@@ -33,7 +32,7 @@ def new_voucher():
             new_form = VoucherForm(formdata=None)  # Provide a clear form
 
             return render_template(
-                "voucher/_form_today_preview.html",  # Reload the cards in the new_voucher page
+                "voucher/_new_voucher_fragments.html",  # Reload the cards in the new_voucher page
                 form=new_form,
                 vouchers=get_todays_vouchers(),
                 new_voucher=new_voucher,
@@ -42,7 +41,7 @@ def new_voucher():
 
         # If form validation failed, retain input data
         if form.date_received.data:
-            date_received_value = to_local_datetime(form.date_received.data)
+            date_received_value = form.date_received.data
         else:
             date_received_value = get_current_local_datetime()
 
@@ -50,6 +49,15 @@ def new_voucher():
             "voucher/form.html",
             form=form,
             date_received_value=date_received_value,
+        )
+
+    # If cancel button is clicked, clear the form
+    if request.args.get("clear_form") == "true":
+        form = VoucherForm(formdata=None)
+        return render_template(
+            "voucher/_clear_form.html",
+            form=form,
+            date_received_value=get_current_local_datetime(),
         )
 
     # GET request contexts
