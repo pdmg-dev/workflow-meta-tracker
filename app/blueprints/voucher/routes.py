@@ -6,7 +6,12 @@ import pytz
 from flask import flash, json, jsonify, make_response, render_template, request
 from flask_login import current_user, login_required
 
-from app.blueprints.voucher.services import create_voucher
+from app.blueprints.voucher.services import (
+    create_voucher,
+    get_current_local_datetime,
+    get_todays_vouchers,
+    to_local_datetime,
+)
 from app.extensions import db
 from app.models.user import Role
 from app.models.voucher import Voucher, VoucherOrigin, VoucherStatusHistory, VoucherStatusTransition
@@ -21,70 +26,38 @@ from .forms import VoucherForm
 @require_roles("admin", "encoder")
 def new_voucher():
     form = VoucherForm()
-    tz_manila = pytz.timezone("Asia/Manila")
-
-    # Decide the value once at the start
-    if form.date_received.raw_data:
-        date_received_value = form.date_received.raw_data[0]
-    elif form.date_received.data:
-        date_received_value = form.date_received.data.astimezone(tz_manila).strftime("%Y-%m-%d %I:%M %p")
-    else:
-        date_received_value = datetime.now(tz_manila).strftime("%Y-%m-%d %I:%M %p")
-
     if request.method == "POST":
         if form.validate_on_submit():
             new_voucher = create_voucher(form, current_user)
             flash("Voucher saved successfully!", "success")
-
-            # Fresh form → reset to current time
-            fresh_form = VoucherForm(formdata=None)
-            date_received_value = datetime.now(tz_manila).strftime("%Y-%m-%d %I:%M %p")
-
-            # Re-query today's vouchers
-            tz = pytz.UTC
-            today_utc = datetime.now(tz).date()
-            start = datetime.combine(today_utc, datetime.min.time()).replace(tzinfo=tz)
-            end = datetime.combine(today_utc, datetime.max.time()).replace(tzinfo=tz)
-
-            vouchers = Voucher.query.filter(Voucher.date_received.between(start, end)).order_by(
-                Voucher.date_received.desc(), Voucher.reference_number.desc()
-            )
-
-            # history for the preview
-            history = new_voucher.history.order_by(VoucherStatusHistory.updated_at.desc()).all()
+            new_form = VoucherForm(formdata=None)  # Provide a clear form
 
             return render_template(
-                "voucher/_form_today_preview.html",
-                form=fresh_form,
-                vouchers=vouchers,
+                "voucher/_form_today_preview.html",  # Reload the cards in the new_voucher page
+                form=new_form,
+                vouchers=get_todays_vouchers(),
                 new_voucher=new_voucher,
-                history=history,
-                date_received_value=date_received_value,
+                date_received_value=get_current_local_datetime(),
             )
+
+        # If form validation failed, retain input data
+        if form.date_received.data:
+            date_received_value = to_local_datetime(form.date_received.data)
+        else:
+            date_received_value = get_current_local_datetime()
+
         return render_template(
             "voucher/form.html",
             form=form,
             date_received_value=date_received_value,
         )
 
-    tz = pytz.UTC
-    today_utc = datetime.now(tz).date()
-    start = datetime.combine(today_utc, datetime.min.time()).replace(tzinfo=tz)
-    end = datetime.combine(today_utc, datetime.max.time()).replace(tzinfo=tz)
-    vouchers = Voucher.query.filter(Voucher.date_received.between(start, end)).order_by(
-        Voucher.date_received.desc(), Voucher.reference_number.desc()
-    )
-    recent_voucher = vouchers.first()
-
-    origin_list = [str(o.name) for o in VoucherOrigin.query.filter(VoucherOrigin.name.isnot(None)).all()]
-
+    # GET request contexts
     return render_template(
         "new_voucher.html",
         form=form,
-        vouchers=vouchers,
-        recent_voucher_id=recent_voucher.id if recent_voucher else None,
-        origin_list=origin_list,
-        date_received_value=date_received_value,
+        vouchers=get_todays_vouchers(),
+        date_received_value=get_current_local_datetime(),
     )
 
 
