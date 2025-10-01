@@ -3,12 +3,15 @@
   <div class="content-container">
     <div class="content-header">
       <h4 class="content-title">Vouchers</h4>
+      <a href="{{ url_for('tracker.view_vouchers') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back
+      </a>
     </div>
 
-    <div class="new-voucher-form">
-      <!-- Today's Added Voucher -->
+    <div class="new-voucher-fragments">
+      <!--Today's Vouchers-->
       <div class="card">
-        <h6 class="card-header text-muted">Today's Added Voucher</h6>
+        <h6 class="card-header text-muted">Today's Vouchers</h6>
         <div class="card-body">
           <div class="table-container scroll-area">
             <div id="todays-vouchers-body">{% include 'voucher/_today.html' %}</div>
@@ -16,7 +19,7 @@
         </div>
       </div>
 
-      <!-- New Voucher Form -->
+      <!--New Voucher-->
       <div class="card">
         <h6 class="card-header text-muted">New Voucher</h6>
         <div class="card-body">
@@ -24,7 +27,7 @@
         </div>
       </div>
 
-      <!-- Preview -->
+      <!--Preview-->
       <div class="card">
         <h6 class="card-header text-muted">Preview</h6>
         <div class="card-body">
@@ -39,7 +42,7 @@
 
 {% block style %}
   <style>
-    .new-voucher-form {
+    .new-voucher-fragments {
       display: grid;
       grid-template-columns: 1fr 3fr 2fr;
       gap: 1rem;
