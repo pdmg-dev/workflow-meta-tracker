@@ -19,7 +19,11 @@
           data-bs-toggle="dropdown"
           aria-expanded="false"
         >
-          {{ dict(form.voucher_type.choices).get(form.voucher_type.data, 'Select Type') }}
+          {% if form.voucher_type.data %}
+            {{ dict(form.voucher_type.choices).get(form.voucher_type.data) }}
+          {% else %}
+            <span class="text-muted">Choose type</span>
+          {% endif %}
         </button>
         <ul class="dropdown-menu w-100 overflow-auto" style="max-height: 200px;" aria-labelledby="typeDropdown">
           {% for value, label in form.voucher_type.choices %}
@@ -47,7 +51,11 @@
           data-bs-toggle="dropdown"
           aria-expanded="false"
         >
-          {{ dict(form.origin.choices).get(form.origin.data, 'Select Origin') }}
+          {% if form.origin.data %}
+            {{ dict(form.origin.choices).get(form.origin.data) }}
+          {% else %}
+            <span class="text-muted">Choose origin</span>
+          {% endif %}
         </button>
         <ul class="dropdown-menu w-100 overflow-auto" style="max-height: 200px;" aria-labelledby="originDropdown">
           {% for value, label in form.origin.choices %}
@@ -66,18 +74,19 @@
     <!-- Date Received -->
     <div class="col-md-4">
       <label for="date_received" class="form-label">Date Received</label>
-      <div class="input-group position-relative" id="datePickerWrapper">
+      <div class="input-group position-relative td-datetime" id="date_received_group">
         <input
           type="text"
           class="form-control{{ ' is-invalid' if form.date_received.errors else '' }}"
-          id="date_received"
           name="date_received"
-          value="{{ date_received_value }}"
+          value="{{ form.date_received.data or '' }}"
+          placeholder="mm/dd/yyyy hh:mm"
           required
         />
-        <span class="input-group-text" data-td-toggle="datetimepicker" data-td-target="#datePickerWrapper">
+        <span class="input-group-text" data-td-toggle="datetimepicker" data-td-target="#date_received_group">
           <i class="bi bi-calendar-event"></i>
         </span>
+
         {% for err in form.date_received.errors %}
           <div class="invalid-feedback d-block">{{ err }}</div>
         {% endfor %}
@@ -92,6 +101,7 @@
              class="form-control" + (' is-invalid' if form.payee.errors else ''),
              maxlength=120,
              required=True,
+             placeholder="Enter payee name",
              **{'data-autofocus': True}
         )
       }}
@@ -111,6 +121,7 @@
              min="0.01",
              inputmode="decimal",
              required=True,
+            placeholder="Enter total amount",
              oninput="limitDigits(this, 8, 2)"
         )
       }}
@@ -129,6 +140,7 @@
              class="form-control" + (' is-invalid' if form.particulars.errors else ''),
              maxlength=2000,
              required=True,
+             placeholder="Enter particulars",
         )
       }}
     </div>
@@ -137,7 +149,11 @@
     {% endfor %}
   </div>
   <div class="d-flex justify-content-between">
-    <a hx-get="{{ url_for('voucher.new_voucher', clear_form='true') }}" hx-swap="none" class="btn btn-outline-secondary"
+    <a
+      hx-get="{{ url_for('voucher.new_voucher', clear_form='true') }}"
+      hx-target="#entry-form-container"
+      hx-swap="innerHTML"
+      class="btn btn-outline-secondary"
       ><i class="bi bi-x-lg me-1"></i>Cancel</a
     >
     <button type="submit" class="btn btn-primary"><i class="bi bi-floppy me-1"></i> Save</button>
@@ -240,14 +256,29 @@
       });
 
       // Tempus Dominus date picker – guard each input
-      container.querySelectorAll("#datePickerWrapper").forEach((wrapper) => {
-        if (wrapper.__td_initialized) return;
+      container.querySelectorAll(".td-datetime").forEach((group) => {
         if (!window.tempusDominus) {
           console.error("Tempus Dominus library not found.");
           return;
         }
-        const picker = new tempusDominus.TempusDominus(wrapper, {
-          localization: { format: "MM/dd/yyyy hh:mm T" },
+
+        if (group.__td_instance) {
+          try {
+            group.__td_instance.dispose();
+          } catch (err) {
+            console.warn("Failed to dispose old Tempus Dominus instance", err);
+          }
+          group.__td_instance = null;
+        }
+
+        const picker = new tempusDominus.TempusDominus(group, {
+          keepInvalid: true,
+          useCurrent: false,
+          localization: {
+            format: "MM/dd/yyyy hh:mm T",
+            hourCycle: "h12",
+            locale: "en",
+          },
           display: {
             theme: "light",
             icons: {
@@ -277,8 +308,7 @@
           },
         });
 
-        wrapper.__td_initialized = true;
-        wrapper.__td_instance = picker;
+        group.__td_instance = picker;
       });
     }
 
@@ -313,6 +343,10 @@
     .flex-wrapper .form-control {
       flex-grow: 1;
       resize: none;
+    }
+
+    .small-placeholder::placeholder {
+      font-size: 0.875rem; /* Bootstrap's .small font size */
     }
   </style>
 {% endblock %}
