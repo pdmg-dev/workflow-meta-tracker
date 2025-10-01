@@ -39,14 +39,14 @@ def new_voucher():
         else:
             # If form validation failed, retain input data
             return render_template(
-                "voucher/form.html",
+                "voucher/_form.html",
                 form=form,
             )
 
     # Load a new form, if cancel button is clicked
     if request.args.get("clear_form") == "true":
         form = VoucherForm(formdata=None)
-        return render_template("voucher/form.html", form=form)
+        return render_template("voucher/_form.html", form=form)
 
     # GET request contexts
     return render_template(
