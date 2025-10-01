@@ -28,7 +28,8 @@ class VoucherForm(FlaskForm):
         validators=[
             InputRequired(message="Payee is required."),
             Regexp(
-                regex=r"^[A-Za-z\s\-\.]+$", message="Payee name can only contain letters, spaces, hyphens, and periods."
+                regex=r"^[A-Za-z\s\-\.&]+$",
+                message="Payee name can only contain letters, spaces, hyphens, and periods.",
             ),
             Length(max=120, message="Payee name is too long. Keep it under 120 characters."),
         ],
