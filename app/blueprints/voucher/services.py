@@ -13,7 +13,7 @@ def create_voucher(form, current_user):
     voucher = Voucher(
         voucher_type_id=form.voucher_type.data,
         origin_id=form.origin.data,
-        date_received=form.date_received.data,
+        date_received=form.cleaned_date_received,
         payee=form.payee.data,
         amount=form.amount.data,
         particulars=form.particulars.data,
@@ -35,18 +35,28 @@ def create_voucher(form, current_user):
     return voucher
 
 
+def parse_local_datetime(value):
+    try:
+        naive = datetime.strptime(value, "%m/%d/%Y %I:%M %p")
+    except ValueError as error:
+        raise ValueError("Invalid date format.") from error
+    return naive.replace(tzinfo=local_timezone)
+
+
 def get_current_local_datetime():
     return datetime.now(ZoneInfo("UTC")).astimezone(local_timezone).strftime("%m/%d/%Y %I:%M %p")
 
 
-def to_local_datetime(datetime_data):
-    return datetime_data.astimezone(local_timezone).strftime("%m/%d/%Y %I:%M %p")
+def to_local_datetime(date_time):
+    if isinstance(date_time, str):
+        parse_local_datetime(date_time)
+    return date_time.astimezone(local_timezone).strftime("%m/%d/%Y %I:%M %p")
 
 
 def get_todays_vouchers():
     current_date = datetime.now(local_timezone).date()
     start_time = datetime.combine(current_date, time.min).replace(tzinfo=local_timezone)
     end_time = datetime.combine(current_date, time.max).replace(tzinfo=local_timezone)
-    return Voucher.query.filter(Voucher.date_received.between(start_time, end_time)).order_by(
-        Voucher.date_received, Voucher.reference_number.desc()
+    return Voucher.query.filter(Voucher.encoded_at.between(start_time, end_time)).order_by(
+        Voucher.encoded_at.desc(), Voucher.reference_number.desc()
     )
