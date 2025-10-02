@@ -13,12 +13,14 @@ class Voucher(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     reference_number = db.Column(db.String(50), unique=True, nullable=False)
     payee = db.Column(db.String(120), nullable=False)
+    address = db.Column(db.String(120), nullable=False)
     amount = db.Column(db.Numeric(15, 2), nullable=False)
     particulars = db.Column(db.Text, nullable=False)
 
     date_received = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 
     voucher_type_id = db.Column(db.Integer, db.ForeignKey("voucher_types.id"), nullable=False)
+    fund_id = db.Column(db.Integer, db.ForeignKey("voucher_funds.id"), nullable=False)
     origin_id = db.Column(db.Integer, db.ForeignKey("voucher_origins.id"), nullable=False)
     status_id = db.Column(db.Integer, db.ForeignKey("voucher_statuses.id"), nullable=False)
 
@@ -33,6 +35,7 @@ class Voucher(db.Model):
     )
 
     voucher_type = db.relationship("VoucherType", back_populates="vouchers", lazy="joined")
+    fund = db.relationship("VoucherFund", back_populates="vouchers", lazy="joined")
     origin = db.relationship("VoucherOrigin", back_populates="vouchers", lazy="joined")
     status = db.relationship("VoucherStatus", back_populates="vouchers", lazy="joined")
 
@@ -53,6 +56,16 @@ class VoucherType(db.Model):
 
     vouchers = db.relationship("Voucher", back_populates="voucher_type")
     roles = db.relationship("Role", secondary=role_voucher_types, back_populates="voucher_types")
+
+
+class VoucherFund(db.Model):
+    __tablename__ = "voucher_funds"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    code = db.Column(db.String(10), unique=True, nullable=False)
+
+    vouchers = db.relationship("Voucher", back_populates="fund")
 
 
 class VoucherOrigin(db.Model):

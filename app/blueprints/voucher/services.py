@@ -12,9 +12,11 @@ def create_voucher(form, current_user):
     status = VoucherStatus.query.filter_by(code="received").first()
     voucher = Voucher(
         voucher_type_id=form.voucher_type.data,
-        origin_id=form.origin.data,
+        fund=form.cleaned_fund,
         date_received=form.cleaned_date_received,
         payee=form.payee.data,
+        origin=form.cleaned_origin,
+        address=form.address.data,
         amount=form.amount.data,
         particulars=form.particulars.data,
         status_id=status.id,

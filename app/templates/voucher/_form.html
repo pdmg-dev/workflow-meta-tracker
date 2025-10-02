@@ -6,8 +6,9 @@
   hx-swap="innerHTML"
 >
   {{ form.hidden_tag() }}
+
   <div class="row g-2">
-    <!-- Type -->
+    <!-- Voucher Type -->
     <div class="col-md-4">
       <label for="typeDropdown" class="form-label">Type</label>
       <div class="dropdown w-100">
@@ -22,10 +23,10 @@
           {% if form.voucher_type.data %}
             {{ dict(form.voucher_type.choices).get(form.voucher_type.data) }}
           {% else %}
-            <span class="text-muted">Choose type</span>
+            <span class="text-muted">e.g. Salary</span>
           {% endif %}
         </button>
-        <ul class="dropdown-menu w-100 overflow-auto" style="max-height: 200px;" aria-labelledby="typeDropdown">
+        <ul class="dropdown-menu w-100 overflow-auto" style="max-height: 100px;" aria-labelledby="typeDropdown">
           {% for value, label in form.voucher_type.choices %}
             <li>
               <button class="dropdown-item" type="button" data-value="{{ value }}">{{ label }}</button>
@@ -39,36 +40,18 @@
       </div>
     </div>
 
-    <!-- Origin -->
+    <!-- Fund Cluster -->
     <div class="col-md-4">
-      <label for="originDropdown" class="form-label">Origin</label>
-      <div class="dropdown w-100">
-        <button
-          class="form-select w-100 text-start d-flex justify-content-between align-items-center
-             {{ 'is-invalid' if form.origin.errors else '' }}"
-          type="button"
-          id="originDropdown"
-          data-bs-toggle="dropdown"
-          aria-expanded="false"
-        >
-          {% if form.origin.data %}
-            {{ dict(form.origin.choices).get(form.origin.data) }}
-          {% else %}
-            <span class="text-muted">Choose origin</span>
-          {% endif %}
-        </button>
-        <ul class="dropdown-menu w-100 overflow-auto" style="max-height: 200px;" aria-labelledby="originDropdown">
-          {% for value, label in form.origin.choices %}
-            <li>
-              <button class="dropdown-item" type="button" data-value="{{ value }}">{{ label }}</button>
-            </li>
-          {% endfor %}
-        </ul>
-        <input type="hidden" name="origin" id="originHidden" value="{{ form.origin.data or '' }}" />
-        {% for err in form.origin.errors %}
-          <div class="invalid-feedback d-block">{{ err }}</div>
-        {% endfor %}
-      </div>
+      {{ form.fund.label(class="form-label") }}
+      {{
+        form.fund(
+             class="form-control" + (' is-invalid' if form.fund.errors else ''),
+             placeholder="e.g. General Fund or 100",
+        )
+      }}
+      {% for err in form.fund.errors %}
+        <div class="invalid-feedback">{{ err }}</div>
+      {% endfor %}
     </div>
 
     <!-- Date Received -->
@@ -101,11 +84,40 @@
              class="form-control" + (' is-invalid' if form.payee.errors else ''),
              maxlength=120,
              required=True,
-             placeholder="Enter payee name",
+             placeholder="e.g. Juan Dela Cruz",
              **{'data-autofocus': True}
         )
       }}
       {% for err in form.payee.errors %}
+        <div class="invalid-feedback">{{ err }}</div>
+      {% endfor %}
+    </div>
+
+    <!-- Office/Code -->
+    <div class="col-md-4">
+      {{ form.origin.label(class="form-label") }}
+      {{
+        form.origin(
+             class="form-control" + (' is-invalid' if form.origin.errors else ''),
+             placeholder="e.g. Accounting or 1081",
+        )
+      }}
+      {% for err in form.origin.errors %}
+        <div class="invalid-feedback">{{ err }}</div>
+      {% endfor %}
+    </div>
+
+    <!-- Address -->
+    <div class="col-md-8">
+      {{ form.address.label(class="form-label") }}
+      {{
+        form.address(
+             class="form-control" + (' is-invalid' if form.address.errors else ''),
+             maxlength=120,
+             placeholder="e.g. Burdeos, Quezon (optional)",
+        )
+      }}
+      {% for err in form.address.errors %}
         <div class="invalid-feedback">{{ err }}</div>
       {% endfor %}
     </div>
@@ -121,7 +133,7 @@
              min="0.01",
              inputmode="decimal",
              required=True,
-            placeholder="Enter total amount",
+            placeholder="0.00",
              oninput="limitDigits(this, 8, 2)"
         )
       }}
@@ -131,27 +143,30 @@
     </div>
   </div>
 
-  <!-- Particulars -->
-  <div class="col-12 d-flex flex-column flex-grow-1">
-    {{ form.particulars.label(class="form-label") }}
-    <div class="flex-wrapper flex-grow-1">
-      {{
-        form.particulars(
-             class="form-control" + (' is-invalid' if form.particulars.errors else ''),
-             maxlength=2000,
-             required=True,
-             placeholder="Enter particulars",
-        )
-      }}
+  <div class="row h-100">
+    <!-- Explanation -->
+    <div class="col-12 d-flex flex-column flex-grow-1">
+      {{ form.particulars.label(class="form-label") }}
+      <div class="flex-wrapper flex-grow-1">
+        {{
+          form.particulars(
+               class="form-control" + (' is-invalid' if form.particulars.errors else ''),
+               maxlength=2000,
+               required=True
+          )
+        }}
+      </div>
+      {% for err in form.particulars.errors %}
+        <div class="invalid-feedback">{{ err }}</div>
+      {% endfor %}
     </div>
-    {% for err in form.particulars.errors %}
-      <div class="invalid-feedback">{{ err }}</div>
-    {% endfor %}
   </div>
+
   <div class="d-flex justify-content-end">
     <button type="submit" class="btn btn-primary"><i class="bi bi-floppy me-1"></i> Save</button>
   </div>
 </form>
+
 <div class="position-absolute bottom-0 start-0 mb-3 ms-3">
   <a
     hx-get="{{ url_for('voucher.new_voucher', clear_form='true') }}"
@@ -249,12 +264,12 @@
         });
       });
 
-      container.querySelectorAll("#originDropdown + .dropdown-menu .dropdown-item").forEach((item) => {
+      container.querySelectorAll("#fundDropdown + .dropdown-menu .dropdown-item").forEach((item) => {
         if (item.__bound) return;
         item.__bound = true;
         item.addEventListener("click", (e) => {
-          document.getElementById("originDropdown").textContent = e.target.textContent;
-          document.getElementById("originHidden").value = e.target.dataset.value;
+          document.getElementById("fundDropdown").textContent = e.target.textContent;
+          document.getElementById("fundHidden").value = e.target.dataset.value;
         });
       });
 
