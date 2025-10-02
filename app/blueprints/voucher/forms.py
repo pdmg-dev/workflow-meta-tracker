@@ -4,14 +4,8 @@ from datetime import datetime, timezone
 from decimal import Decimal
 
 from flask_wtf import FlaskForm
-from wtforms import (
-    DecimalField,
-    SelectField,
-    StringField,
-    SubmitField,
-    TextAreaField,
-)
-from wtforms.validators import InputRequired, Length, NumberRange, Regexp, ValidationError
+from wtforms import DecimalField, HiddenField, SelectField, StringField, SubmitField, TextAreaField
+from wtforms.validators import InputRequired, Length, NumberRange, Optional, Regexp, ValidationError
 
 from app.blueprints.voucher.services import local_timezone, parse_local_datetime
 from app.extensions import db
@@ -34,7 +28,13 @@ class VoucherForm(FlaskForm):
             Length(max=120, message="Payee name is too long. Keep it under 120 characters."),
         ],
     )
-    origin = StringField("Origin", validators=[InputRequired(message="Origin must be an office or code")])
+    origin = StringField("Origin", validators=[Optional()])
+
+    origin_id = HiddenField(
+        "Origin ID",
+        validators=[InputRequired(message="Please choose an origin.")],
+        filters=[lambda x: int(x) if x and str(x).isdigit() else None],
+    )
 
     address = StringField(
         "Address",
@@ -71,6 +71,7 @@ class VoucherForm(FlaskForm):
         self.voucher_type.choices = [
             (vt.id, vt.name) for vt in db.session.query(VoucherType).order_by(VoucherType.name.asc()).all()
         ]
+        self.origins = db.session.query(VoucherOrigin).order_by(VoucherOrigin.code.asc()).all()
 
     def validate_date_received(self, field):
         try:
@@ -94,12 +95,27 @@ class VoucherForm(FlaskForm):
         self.cleaned_fund = fund
 
     def validate_origin(self, field):
-        origin_input = field.data.strip()
+        origin_input = (field.data or "").strip()
 
-        origin = VoucherOrigin.query.filter(
-            db.or_(VoucherOrigin.name.ilike(origin_input), VoucherOrigin.code.ilike(origin_input))
+        # If JS already set origin_id, prefer it (avoid double work)
+        if self.origin_id.data:
+            origin_obj = VoucherOrigin.query.get(self.origin_id.data)
+            if origin_obj:
+                self.cleaned_origin = origin_obj
+                return
+
+        # Otherwise, fallback: try to resolve text input
+        origin_obj = VoucherOrigin.query.filter(
+            db.or_(
+                VoucherOrigin.name.ilike(origin_input),
+                VoucherOrigin.code.ilike(origin_input),
+                VoucherOrigin.keyword.ilike(origin_input),
+            )
         ).first()
 
-        if not origin:
-            raise ValidationError("Invalid origin. Please enter a valid office name or code.")
-        self.cleaned_origin = origin
+        if origin_obj:
+            self.cleaned_origin = origin_obj
+            self.origin_id.data = origin_obj.id  # backfill hidden
+            return
+
+        raise ValidationError("Invalid origin. Please select an office by picking from the list.")

@@ -5,39 +5,37 @@
   hx-target="#entry-form-container"
   hx-swap="innerHTML"
 >
-  {{ form.hidden_tag() }}
+  {{ form.csrf_token() }}
 
   <div class="row g-2">
     <!-- Voucher Type -->
-    <div class="col-md-4">
-      <label for="typeDropdown" class="form-label">Type</label>
-      <div class="dropdown w-100">
-        <button
-          class="form-select w-100 text-start d-flex justify-content-between align-items-center
-             {{ 'is-invalid' if form.voucher_type.errors else '' }}"
-          type="button"
-          id="typeDropdown"
-          data-bs-toggle="dropdown"
-          aria-expanded="false"
-        >
-          {% if form.voucher_type.data %}
-            {{ dict(form.voucher_type.choices).get(form.voucher_type.data) }}
-          {% else %}
-            <span class="text-muted">e.g. Salary</span>
-          {% endif %}
-        </button>
-        <ul class="dropdown-menu w-100 overflow-auto" style="max-height: 100px;" aria-labelledby="typeDropdown">
-          {% for value, label in form.voucher_type.choices %}
-            <li>
-              <button class="dropdown-item" type="button" data-value="{{ value }}">{{ label }}</button>
-            </li>
-          {% endfor %}
-        </ul>
-        <input type="hidden" name="voucher_type" id="voucherTypeHidden" value="{{ form.voucher_type.data or '' }}" />
-        {% for err in form.voucher_type.errors %}
-          <div class="invalid-feedback d-block">{{ err }}</div>
+    <div class="col-md-4 position-relative">
+      <label for="voucherTypeInput" class="form-label">Type</label>
+      <input
+        type="text"
+        id="voucherTypeInput"
+        class="form-control {{ 'is-invalid' if form.voucher_type.errors else '' }}"
+        placeholder="e.g. Salary"
+        value="{% if form.voucher_type.data %}{{ dict(form.voucher_type.choices).get(form.voucher_type.data) }}{% endif %}"
+        autocomplete="off"
+        autofocus="true"
+      />
+
+      <ul
+        id="voucherTypeSuggestions"
+        class="list-group position-absolute w-100 shadow-sm"
+        style="z-index: 1000; display:none; max-height: 200px; overflow-y:auto;"
+      >
+        {% for value, label in form.voucher_type.choices %}
+          <li class="list-group-item suggestion-item" data-value="{{ value }}">{{ label }}</li>
         {% endfor %}
-      </div>
+      </ul>
+
+      <input type="hidden" name="voucher_type" id="voucherTypeHidden" value="{{ form.voucher_type.data or '' }}" />
+
+      {% for err in form.voucher_type.errors %}
+        <div class="invalid-feedback d-block">{{ err }}</div>
+      {% endfor %}
     </div>
 
     <!-- Fund Cluster -->
@@ -85,7 +83,6 @@
              maxlength=120,
              required=True,
              placeholder="e.g. Juan Dela Cruz",
-             **{'data-autofocus': True}
         )
       }}
       {% for err in form.payee.errors %}
@@ -93,17 +90,41 @@
       {% endfor %}
     </div>
 
-    <!-- Office/Code -->
-    <div class="col-md-4">
-      {{ form.origin.label(class="form-label") }}
-      {{
-        form.origin(
-             class="form-control" + (' is-invalid' if form.origin.errors else ''),
-             placeholder="e.g. Accounting or 1081",
-        )
-      }}
+    <!-- Origin -->
+    <div class="col-md-4 position-relative">
+      <label for="originInput" class="form-label">Origin</label>
+      <input
+        type="text"
+        id="originInput"
+        name="origin"
+        class="form-control {{ 'is-invalid' if form.origin.errors else '' }}"
+        placeholder="e.g. Accounting or 1081"
+        value="{{ form.origin.data or '' }}"
+        autocomplete="off"
+      />
+
+      <ul
+        id="originSuggestions"
+        class="list-group position-absolute w-100 shadow-sm"
+        style="z-index:1000; display:none; max-height:150px; overflow-y:auto;"
+      >
+        {% for o in form.origins %}
+          <li
+            class="list-group-item suggestion-item"
+            data-id="{{ o.id }}"
+            data-code="{{ o.code }}"
+            data-name="{{ o.name }}"
+            data-keyword="{{ o.keyword or o.name }}"
+          >
+            {{ o.keyword }} ({{ o.code }})
+          </li>
+        {% endfor %}
+      </ul>
+
+      <input type="hidden" name="origin_id" id="originHidden" value="{{ form.origin_id.data or '' }}" />
+
       {% for err in form.origin.errors %}
-        <div class="invalid-feedback">{{ err }}</div>
+        <div class="invalid-feedback d-block">{{ err }}</div>
       {% endfor %}
     </div>
 
@@ -114,6 +135,7 @@
         form.address(
              class="form-control" + (' is-invalid' if form.address.errors else ''),
              maxlength=120,
+             required=True,
              placeholder="e.g. Burdeos, Quezon (optional)",
         )
       }}
@@ -252,18 +274,163 @@
       if (f) setSubmitState(f, false);
     });
 
-    // ========= 2) Per-swap initializer =========
-    function initVoucherForm(container = document) {
-      // Dropdowns – guard each item so we only attach once
-      container.querySelectorAll("#typeDropdown + .dropdown-menu .dropdown-item").forEach((item) => {
-        if (item.__bound) return;
-        item.__bound = true;
-        item.addEventListener("click", (e) => {
-          document.getElementById("typeDropdown").textContent = e.target.textContent;
-          document.getElementById("voucherTypeHidden").value = e.target.dataset.value;
+    function initOriginAutocomplete(container = document) {
+      const input = container.querySelector("#originInput");
+      const suggestions = container.querySelector("#originSuggestions");
+      const hidden = container.querySelector("#originHidden");
+
+      if (!input || !suggestions || !hidden || input.__bound) return;
+      input.__bound = true;
+      let activeIndex = -1;
+
+      function updateHighlight(items) {
+        items.forEach((item, i) => item.classList.toggle("active", i === activeIndex));
+      }
+
+      input.addEventListener("input", () => {
+        const term = input.value.toLowerCase().trim();
+        let hasMatch = false;
+        const items = Array.from(suggestions.querySelectorAll(".suggestion-item"));
+        items.forEach((item) => {
+          const text = item.textContent.toLowerCase();
+          const code = (item.dataset.code || "").toLowerCase();
+          const name = (item.dataset.name || "").toLowerCase();
+          const keyword = (item.dataset.keyword || "").toLowerCase();
+          const match = text.includes(term) || code.includes(term) || name.includes(term) || keyword.includes(term);
+          item.style.display = match ? "" : "none";
+          if (match) hasMatch = true;
         });
+        suggestions.style.display = hasMatch ? "block" : "none";
+        activeIndex = -1;
+        updateHighlight(items);
       });
 
+      // keyboard navigation + enter
+      input.addEventListener("keydown", (e) => {
+        const visibleItems = Array.from(suggestions.querySelectorAll(".suggestion-item")).filter(
+          (i) => i.style.display !== "none",
+        );
+        if (!visibleItems.length || suggestions.style.display !== "block") return;
+
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          activeIndex = (activeIndex + 1) % visibleItems.length;
+          updateHighlight(visibleItems);
+          visibleItems[activeIndex].scrollIntoView({ block: "nearest" });
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          activeIndex = (activeIndex - 1 + visibleItems.length) % visibleItems.length;
+          updateHighlight(visibleItems);
+          visibleItems[activeIndex].scrollIntoView({ block: "nearest" });
+        } else if (e.key === "Enter") {
+          if (activeIndex >= 0) {
+            e.preventDefault();
+            const choice = visibleItems[activeIndex];
+            input.value = choice.dataset.keyword || choice.textContent.trim();
+            hidden.value = choice.dataset.id;
+            suggestions.style.display = "none";
+            console.log("Enter set origin_id:", hidden.value);
+          }
+        } else if (e.key === "Escape") {
+          suggestions.style.display = "none";
+        }
+      });
+
+      // click selection
+      suggestions.querySelectorAll(".suggestion-item").forEach((item) => {
+        if (item.__bound) return;
+        item.__bound = true;
+        item.addEventListener("click", () => {
+          input.value = item.dataset.keyword || item.textContent.trim();
+          hidden.value = item.dataset.id;
+          suggestions.style.display = "none";
+          console.log("Click set origin_id:", hidden.value);
+        });
+      });
+    }
+
+    function initVoucherForm(container = document) {
+      const input = container.querySelector("#voucherTypeInput");
+      const hidden = container.querySelector("#voucherTypeHidden");
+      const suggestions = container.querySelector("#voucherTypeSuggestions");
+
+      if (input && hidden && suggestions && !input.__bound) {
+        input.__bound = true;
+
+        let activeIndex = -1; // track which item is highlighted
+
+        function updateHighlight(items) {
+          items.forEach((item, i) => {
+            item.classList.toggle("active", i === activeIndex);
+          });
+        }
+
+        input.addEventListener("input", () => {
+          const term = input.value.toLowerCase();
+          let hasMatch = false;
+
+          const items = Array.from(suggestions.querySelectorAll(".suggestion-item"));
+          items.forEach((item) => {
+            const match = item.textContent.toLowerCase().includes(term);
+            item.style.display = match ? "" : "none";
+            if (match) hasMatch = true;
+          });
+
+          suggestions.style.display = hasMatch ? "block" : "none";
+          activeIndex = -1;
+          updateHighlight(items);
+        });
+
+        input.addEventListener("keydown", (e) => {
+          const visibleItems = Array.from(suggestions.querySelectorAll(".suggestion-item")).filter(
+            (item) => item.style.display !== "none",
+          );
+
+          if (suggestions.style.display !== "block" || visibleItems.length === 0) return;
+
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            activeIndex = (activeIndex + 1) % visibleItems.length;
+            updateHighlight(visibleItems);
+            visibleItems[activeIndex].scrollIntoView({ block: "nearest" });
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            activeIndex = (activeIndex - 1 + visibleItems.length) % visibleItems.length;
+            updateHighlight(visibleItems);
+            visibleItems[activeIndex].scrollIntoView({ block: "nearest" });
+          } else if (e.key === "Enter") {
+            if (activeIndex >= 0) {
+              e.preventDefault();
+              const choice = visibleItems[activeIndex];
+              input.value = choice.textContent;
+              hidden.value = choice.dataset.value;
+              suggestions.style.display = "none";
+            }
+          } else if (e.key === "Escape") {
+            suggestions.style.display = "none";
+          }
+        });
+
+        suggestions.querySelectorAll(".suggestion-item").forEach((item) => {
+          if (item.__bound) return;
+          item.__bound = true;
+          item.addEventListener("click", () => {
+            input.value = item.textContent;
+            hidden.value = item.dataset.value;
+            suggestions.style.display = "none";
+          });
+        });
+
+        document.addEventListener("click", (e) => {
+          if (!suggestions.contains(e.target) && e.target !== input) {
+            suggestions.style.display = "none";
+          }
+        });
+      }
+
+      initOriginAutocomplete(container);
+
+      // ==== Fund Dropdown (still uses old dropdown) ====
       container.querySelectorAll("#fundDropdown + .dropdown-menu .dropdown-item").forEach((item) => {
         if (item.__bound) return;
         item.__bound = true;
@@ -273,7 +440,7 @@
         });
       });
 
-      // Tempus Dominus date picker – guard each input
+      // ==== Tempus Dominus datepicker ====
       container.querySelectorAll(".td-datetime").forEach((group) => {
         if (!window.tempusDominus) {
           console.error("Tempus Dominus library not found.");
@@ -289,7 +456,7 @@
           group.__td_instance = null;
         }
 
-        const picker = new tempusDominus.TempusDominus(group, {
+        group.__td_instance = new tempusDominus.TempusDominus(group, {
           keepInvalid: true,
           useCurrent: false,
           localization: {
@@ -325,17 +492,13 @@
             },
           },
         });
-
-        group.__td_instance = picker;
       });
     }
 
-    // Initial page load
+    // Run on load and after HTMX swaps
     document.addEventListener("DOMContentLoaded", () => initVoucherForm());
-
-    // Re-initialize after each HTMX swap of the form container
     document.addEventListener("htmx:afterSwap", (e) => {
-      if (e.detail?.target?.id === FORM_CONTAINER_ID) {
+      if (e.detail?.target?.id === "entry-form-container") {
         initVoucherForm(e.detail.target);
       }
     });
