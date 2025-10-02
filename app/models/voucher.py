@@ -73,6 +73,7 @@ class VoucherOrigin(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
+    keyword = db.Column(db.String(50), nullable=False)
     code = db.Column(db.String(10), unique=True, nullable=False)
 
     vouchers = db.relationship("Voucher", back_populates="origin")
