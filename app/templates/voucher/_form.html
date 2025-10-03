@@ -396,6 +396,7 @@
       }
 
       initOriginAutocomplete(container);
+      restrictAmountInput(container);
 
       // ==== Fund Dropdown (old dropdown) ====
       container.querySelectorAll("#fundDropdown + .dropdown-menu .dropdown-item").forEach((item) => {
@@ -513,6 +514,27 @@
       intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
       el.value = decPart !== undefined ? `${intPart}.${decPart}` : intPart;
     };
+
+    function restrictAmountInput(container = document) {
+      const el = container.querySelector('[name="amount"]');
+      if (!el || el.__bound) return;
+      el.__bound = true;
+
+      el.addEventListener("input", () => {
+        // allow only digits, comma, period
+        el.value = el.value.replace(/[^0-9.,]/g, "");
+      });
+
+      el.addEventListener("keydown", (e) => {
+        if (["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key) || e.ctrlKey || e.metaKey) {
+          return;
+        }
+        if (/^[0-9.,]$/.test(e.key)) {
+          return;
+        }
+        e.preventDefault();
+      });
+    }
   })();
 </script>
 
