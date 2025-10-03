@@ -16,11 +16,9 @@ def create_voucher(form, current_user):
         origin_id = form.cleaned_origin.id
     voucher = Voucher(
         voucher_type_id=form.voucher_type.data,
-        fund=form.cleaned_fund,
         date_received=form.cleaned_date_received,
         payee=form.payee.data,
         origin_id=origin_id,
-        address=form.address.data,
         amount=form.amount.data,
         particulars=form.particulars.data,
         status_id=status.id,
