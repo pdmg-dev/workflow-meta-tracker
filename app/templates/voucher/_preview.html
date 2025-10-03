@@ -1,35 +1,28 @@
 <div class="voucher-preview h-100 d-flex flex-column gap-2">
-  <div class="group reference-group">
+  <div class="group">
     <div class="label text-muted">Reference Number</div>
-    <div class="value fw-bold">{{ voucher.reference_number }}</div>
-  </div>
-
-  <div class="group type-origin-date">
-    <div class="label text-muted">Type</div>
-    <div class="value">{{ voucher.voucher_type.name }}</div>
-
-    <div class="label text-muted">Origin</div>
-    <div class="value">{{ voucher.origin.name }}</div>
-
+    <div class="value">{{ voucher.reference_number }}</div>
     <div class="label text-muted">Date Received</div>
     <div class="value">{{ voucher.date_received | local_time }}</div>
+    <div class="label text-muted">Type</div>
+    <div class="value">{{ voucher.voucher_type.name }}</div>
   </div>
 
-  <div class="group payee-amount">
+  <div class="group">
     <div class="label text-muted">Payee</div>
     <div class="value fw-bold">{{ voucher.payee }}</div>
-
     <div class="label text-muted">Amount</div>
-    <div class="value fw-bold">{{ "{:,.2f}".format(voucher.amount) }}</div>
+    <div class="value fw-bold">₱ {{ "{:,.2f}".format(voucher.amount) }}</div>
+    <div class="label text-muted">Origin</div>
+    <div class="value">{{ voucher.origin.name }}</div>
   </div>
 
   <!-- Particulars fills remaining space -->
   <div class="group particulars-group d-flex flex-column flex-grow-1">
-    <div class="label">Particulars</div>
+    <div class="label text-muted">Particulars</div>
     <div class="particulars-box flex-grow-1">{{ voucher.particulars }}</div>
   </div>
   <div class="d-flex justify-content-end gap-2">
-    <a href="{{ url_for('tracker.view_vouchers') }}" class="btn btn-outline-secondary">Cancel</a>
     <button type="submit" class="btn btn-primary">Edit</button>
   </div>
 </div>
@@ -40,16 +33,6 @@
     .group {
       display: grid;
       grid-template-columns: 1fr 2fr;
-      font-size: small;
-    }
-
-    .label {
-      font-weight: 500;
-      color: #6c757d;
-    }
-
-    .value {
-      color: #212529;
     }
 
     /* --------- Container layout --------- */
@@ -73,7 +56,7 @@
       white-space: pre-wrap;
       word-wrap: break-word;
       overflow-y: auto;
-      border: 1px solid lightgray;
+      border: 1px solid #dee2e6;
       border-radius: 0.5rem;
       line-height: 1.5;
       scrollbar-width: thin;

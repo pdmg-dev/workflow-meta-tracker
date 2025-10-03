@@ -45,7 +45,7 @@ class VoucherForm(FlaskForm):
         ],
     )
     particulars = TextAreaField(
-        "Explanation",
+        "Particulars",
         validators=[
             InputRequired(message="Please describe the particulars."),
             Length(max=2000, message="Particulars too long (max 2000 chars)."),
