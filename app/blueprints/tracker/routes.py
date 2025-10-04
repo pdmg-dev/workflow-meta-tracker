@@ -28,5 +28,5 @@ def dashboard():
 @tracker_bp.route("/vouchers", methods=["GET"])
 @login_required
 def view_vouchers():
-    vouchers = Voucher.query.order_by(Voucher.date_received.desc()).all()
+    vouchers = sorted(Voucher.query.all(), key=lambda v: int(v.reference_number.split("-")[-1]), reverse=True)
     return render_template("vouchers.html", vouchers=vouchers)
