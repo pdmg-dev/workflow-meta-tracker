@@ -1,6 +1,8 @@
 # app/blueprints/vouchers/models.py
 from datetime import datetime, timezone
 
+from sqlalchemy import func
+
 from app.extensions import db
 
 from .user import role_voucher_types, status_transition_roles
@@ -23,7 +25,10 @@ class Voucher(db.Model):
     status_id = db.Column(db.Integer, db.ForeignKey("voucher_statuses.id"), nullable=False)
 
     encoded_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    encoded_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    encoded_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
+
+    edited_by_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    edited_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
     updated_by_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     updated_at = db.Column(
@@ -37,6 +42,7 @@ class Voucher(db.Model):
     status = db.relationship("VoucherStatus", back_populates="vouchers", lazy="joined")
 
     encoder = db.relationship("User", foreign_keys=[encoded_by_id], back_populates="encoded_vouchers")
+    editor = db.relationship("User", foreign_keys=[edited_by_id], back_populates="edited_vouchers")
     updater = db.relationship("User", foreign_keys=[updated_by_id], back_populates="updated_vouchers")
 
     history = db.relationship(

@@ -22,7 +22,7 @@ class User(db.Model, UserMixin):
     roles = db.relationship("Role", secondary=user_roles, back_populates="users")
 
     encoded_vouchers = db.relationship("Voucher", foreign_keys="Voucher.encoded_by_id", back_populates="encoder")
-
+    edited_vouchers = db.relationship("Voucher", foreign_keys="Voucher.edited_by_id", back_populates="editor")
     updated_vouchers = db.relationship("Voucher", foreign_keys="Voucher.updated_by_id", back_populates="updater")
 
     status_updates = db.relationship(
