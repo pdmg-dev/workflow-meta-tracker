@@ -4,7 +4,12 @@ from app.models.user import Role, User
 
 def seed_users():
     default_users = [
-        {"full_name": "Shane", "roles": ["signatory"], "username": "shane", "password": "shane"},
+        {
+            "full_name": "Shane",
+            "roles": ["encoder", "checker", "sorter", "signatory"],
+            "username": "shane",
+            "password": "shane",
+        },
         {"full_name": "Tin", "roles": ["checker"], "username": "tin", "password": "tin"},
         {"full_name": "Cecil", "roles": ["checker"], "username": "cecil", "password": "cecil"},
         {"full_name": "Ivy", "roles": ["checker", "sorter"], "username": "ivy", "password": "ivy"},
