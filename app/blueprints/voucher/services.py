@@ -1,5 +1,5 @@
 # app/blueprints/voucher/services.py
-from datetime import datetime, time
+from datetime import datetime, time, timezone
 from zoneinfo import ZoneInfo
 
 from app.extensions import db
@@ -14,6 +14,7 @@ def create_voucher(form, current_user):
     origin_id = form.origin_id.data if getattr(form, "origin_id", None) else None
     if not origin_id and getattr(form, "cleaned_origin", None):
         origin_id = form.cleaned_origin.id
+
     voucher = Voucher(
         voucher_type_id=form.voucher_type.data,
         date_received=form.cleaned_date_received,
@@ -39,12 +40,29 @@ def create_voucher(form, current_user):
     return voucher
 
 
+def update_voucher(voucher, form, current_user):
+
+    origin_id = form.origin_id.data if getattr(form, "origin_id", None) else None
+    if not origin_id and getattr(form, "cleaned_origin", None):
+        origin_id = form.cleaned_origin.id
+
+    voucher.voucher_type_id = form.voucher_type.data
+    voucher.date_received = form.cleaned_date_received
+    voucher.payee = form.payee.data
+    voucher.origin_id = origin_id
+    voucher.amount = form.amount.data
+    voucher.particulars = form.particulars.data
+    voucher.edited_by_id = current_user.id
+    db.session.commit()
+    return voucher
+
+
 def parse_local_datetime(value):
     try:
         naive = datetime.strptime(value, "%m/%d/%Y %I:%M %p")
     except ValueError as error:
         raise ValueError("Invalid date format.") from error
-    return naive.replace(tzinfo=local_timezone)
+    return naive.replace(tzinfo=None).astimezone(local_timezone)
 
 
 def get_current_local_datetime():
@@ -52,15 +70,15 @@ def get_current_local_datetime():
 
 
 def to_local_datetime(date_time):
-    if isinstance(date_time, str):
-        parse_local_datetime(date_time)
     return date_time.astimezone(local_timezone).strftime("%m/%d/%Y %I:%M %p")
 
 
 def get_todays_vouchers():
-    current_date = datetime.now(local_timezone).date()
-    start_time = datetime.combine(current_date, time.min).replace(tzinfo=local_timezone)
-    end_time = datetime.combine(current_date, time.max).replace(tzinfo=local_timezone)
-    return Voucher.query.filter(Voucher.encoded_at.between(start_time, end_time)).order_by(
+    today = datetime.now(local_timezone).date()
+    start_local = datetime.combine(today, time.min).replace(tzinfo=local_timezone)
+    end_local = datetime.combine(today, time.max).replace(tzinfo=local_timezone)
+    start_utc = start_local.astimezone(timezone.utc)
+    end_utc = end_local.astimezone(timezone.utc)
+    return Voucher.query.filter(Voucher.encoded_at.between(start_utc, end_utc)).order_by(
         Voucher.encoded_at.desc(), Voucher.reference_number.desc()
     )
