@@ -18,7 +18,7 @@
             </a>
             <a
               href="{{ url_for('tracker.view_vouchers') }}"
-              class="btn {{ 'active' if request.endpoint in ['tracker.view_vouchers', 'voucher.new_voucher'] else '' }}"
+              class="btn {{ 'active' if request.endpoint in ['tracker.view_vouchers', 'voucher.new_voucher', 'voucher.edit_voucher'] else '' }}"
             >
               Vouchers
             </a>

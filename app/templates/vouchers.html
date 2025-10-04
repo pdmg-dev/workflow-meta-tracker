@@ -4,7 +4,7 @@
     <div class="content-header">
       <h4 class="content-title">Vouchers</h4>
       <a href="{{ url_for('voucher.new_voucher') }}" class="btn btn-primary">
-        <i class="bi bi-file-earmark-plus me-1"></i>New Voucher
+        <i class="bi bi-file-earmark-plus me-1"></i>New
       </a>
     </div>
 
@@ -36,10 +36,17 @@
 
         <div id="table-container" class="table-container scroll-area">{% include 'voucher/_table.html' %}</div>
       </div>
-      <div class="card" id="voucher-details-card">
-        <div class="card-header text-muted">Details</div>
-        <div class="card-body" id="voucher-details-preview">
-          <div class="text-muted">Select a voucher to see details.</div>
+
+      <div class="card">
+        <h6 class="card-header text-muted">Details Preview</h6>
+        <div class="card-body">
+          <div id="voucher-details-preview" class="h-100">
+            {% if voucher %}
+              {% include "voucher/_preview.html" %}
+            {% else %}
+              <div>No voucher to show.</div>
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>
@@ -95,7 +102,7 @@
   <style>
     .vouchers {
       display: grid;
-      grid-template-columns: 3fr 2fr;
+      grid-template-columns: 4fr 400px;
       gap: 1rem;
       min-height: 0;
       overflow: hidden;
