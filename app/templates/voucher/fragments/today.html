@@ -1,0 +1,84 @@
+{# app/templates/voucher/fragments/todays.html #}
+<div id="todays-vouchers">
+  <table class="vouchers-today">
+    <thead>
+      <tr class="voucher-row text-muted">
+        <th class="refnum-col text-center" scope="col">Reference Number</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for voucher in vouchers %}
+        <tr
+          class="voucher-row"
+          hx-get="{{ url_for('voucher.preview_voucher', voucher_id=voucher.id) }}"
+          hx-target="#preview"
+          hx-swap="innerHTML"
+          style="cursor: pointer;"
+        >
+          <td class="refnum-col text-center">{{ voucher.reference_number }}</td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="1" class="text-center text-muted">No vouchers found</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .vouchers-today {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+
+  .vouchers-today td {
+    font-size: small;
+    padding: 0.5rem 0 0.5rem 0;
+    vertical-align: middle;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    white-space: nowrap;
+    border-bottom: 1px solid #dee2e6;
+    text-align: center;
+  }
+  .refnum-col {
+    font-weight: normal;
+  }
+
+  .vouchers-today thead th {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 2;
+  }
+
+  .vouchers-today tbody tr:hover {
+    background-color: #f1f3f5;
+  }
+
+  .refnum-col {
+    width: 6rem;
+    text-align: left;
+  }
+
+  /* highlight the row that is currently in view */
+  .vouchers-today tbody tr.active-row {
+    background-color: #e7f1ff; /* light blue background */
+    transition: background-color 0.2s ease-in-out;
+  }
+  .vouchers-today tbody tr.active-row td {
+    font-weight: 600; /* optional bold text */
+  }
+
+  .vouchers-today tbody tr {
+    scroll-margin-top: 40px; /* match or slightly exceed header height */
+  }
+
+  /* Remove native black focus ring */
+  .voucher-row:focus {
+    outline: none;
+  }
+</style>

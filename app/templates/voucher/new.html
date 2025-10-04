@@ -1,29 +1,31 @@
-{% extends "base.html" %}
+{# /voucher/new # }
+{# app/templates/voucher/new.html #}
+{% extends 'base.html' %}
 {% block content %}
   <div class="content-container">
     <div class="content-header">
-      <h4 class="content-title">Vouchers</h4>
+      <h4 class="content-title">New Voucher</h4>
       <a href="{{ url_for('tracker.view_vouchers') }}" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left me-1"></i>Back
       </a>
     </div>
 
-    <div class="new-voucher-fragments">
+    <div class="fragments">
       <!--Today's Vouchers-->
       <div class="card">
         <h6 class="card-header text-muted">Today's Vouchers</h6>
         <div class="card-body">
           <div class="table-container scroll-area">
-            <div id="todays-vouchers" class="h-100">{% include 'voucher/_today.html' %}</div>
+            <div id="todays-voucher" class="h-100">{% include 'voucher/fragments/today.html' %}</div>
           </div>
         </div>
       </div>
 
       <!--New Voucher-->
       <div class="card">
-        <h6 class="card-header text-muted">New Voucher</h6>
+        <h6 class="card-header text-muted">Disbursement Voucher</h6>
         <div class="card-body">
-          <div id="entry-form-container" class="h-100">{% include 'voucher/_form.html' %}</div>
+          <div id="entry-form-container" class="h-100">{% include 'voucher/forms/entry.html' %}</div>
         </div>
       </div>
 
@@ -31,14 +33,7 @@
       <div class="card">
         <h6 class="card-header text-muted">Details Preview</h6>
         <div class="card-body">
-          <div id="preview-voucher" class="h-100">
-            {% if voucher %}
-              {% set voucher = voucher %}
-              {% include "voucher/_preview.html" %}
-            {% else %}
-              <div>No voucher to show.</div>
-            {% endif %}
-          </div>
+          <div id="preview" class="h-100">{% include "voucher/fragments/preview.html" %}</div>
         </div>
       </div>
     </div>
@@ -47,9 +42,9 @@
 
 {% block style %}
   <style>
-    .new-voucher-fragments {
+    .fragments {
       display: grid;
-      grid-template-columns: 1fr 3fr 2fr;
+      grid-template-columns: 1fr 3fr 400px;
       gap: 1rem;
       min-height: 0;
       overflow: hidden;

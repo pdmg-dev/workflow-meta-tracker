@@ -1,7 +1,7 @@
-<!--app/templates/voucher/form.html-->
+{# app/templates/voucher/forms/entry.html #}
 <form
   class="d-flex flex-column gap-2 h-100"
-  hx-post="{{ url_for('voucher.new_voucher') }}"
+  hx-post="{{ url_for('voucher.edit_voucher', voucher_id=voucher.id) if voucher and voucher.id else url_for('voucher.new_voucher') }}"
   hx-target="#entry-form-container"
   hx-swap="innerHTML"
 >
@@ -20,6 +20,7 @@
           placeholder="mm/dd/yyyy hh:mm"
           required
           autofocus="true"
+          data-td-target="#date_received_group"
         />
         <span class="input-group-text" data-td-toggle="datetimepicker" data-td-target="#date_received_group">
           <i class="bi bi-calendar-event"></i>
@@ -551,8 +552,9 @@
       resize: none;
     }
 
-    .small-placeholder::placeholder {
-      font-size: 0.875rem; /* Bootstrap's .small font size */
+    .form-label {
+      font-size: smaller;
+      color: #595c5f;
     }
   </style>
 {% endblock %}

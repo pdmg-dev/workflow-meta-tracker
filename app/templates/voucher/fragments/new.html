@@ -1,0 +1,11 @@
+{# app/templates/voucher/fragments/new.html #}
+<div id="todays-voucher" hx-swap-oob="true" class="h-100">{% include "voucher/fragments/today.html" %}</div>
+
+<div id="entry-form-container" class="h-100">{% include "voucher/forms/entry.html" %}</div>
+
+<div id="preview" hx-swap-oob="true" class="h-100">
+  {% set voucher = voucher %}
+  {% include "voucher/fragments/preview.html" %}
+</div>
+
+{% include "partials/_toast.html" %}
