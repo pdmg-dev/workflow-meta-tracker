@@ -158,12 +158,7 @@
 </form>
 
 <div class="position-absolute bottom-0 start-0 mb-3 ms-3">
-  <a
-    hx-get="{{ url_for('voucher.new_voucher', clear_form='true') }}"
-    hx-target="#entry-form-container"
-    hx-swap="innerHTML"
-    class="btn btn-outline-secondary"
-  >
+  <a class="btn btn-outline-secondary" href="#" hx-on="click: clearForm('#entry-form-container form')">
     <i class="bi bi-x-lg me-1"></i>Cancel
   </a>
 </div>
