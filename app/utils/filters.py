@@ -5,8 +5,10 @@ from flask import session
 
 from app.models.voucher import VoucherStatus, VoucherType
 
+format = "%m/%d/%Y %I:%M %p"
 
-def local_time(value, format="%b %d, %Y %I:%M %p"):
+
+def local_time(value, format=format):
     if not value:
         return "—"
 
