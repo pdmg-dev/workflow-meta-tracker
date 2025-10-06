@@ -1,42 +1,41 @@
 {# app/templates/voucher/fragments/todays.html #}
-<div id="todays-vouchers">
-  <table class="vouchers-today">
-    <thead>
-      <tr class="voucher-row text-muted">
-        <th class="refnum-col text-center" scope="col">Reference Number</th>
-      </tr>
-    </thead>
+<table class="todays-table">
+  <thead>
+    <tr class="voucher-row text-muted">
+      <th class="text-center" scope="col">Voucher ID</th>
+    </tr>
+  </thead>
 
-    <tbody>
-      {% for voucher in vouchers %}
-        <tr
-          class="voucher-row"
-          hx-get="{{ url_for('voucher.preview_voucher', voucher_id=voucher.id) }}"
-          hx-target="#preview"
-          hx-swap="innerHTML"
-          style="cursor: pointer;"
-        >
-          <td class="refnum-col text-center">{{ voucher.reference_number }}</td>
-        </tr>
-      {% else %}
-        <tr>
-          <td colspan="1" class="text-center text-muted">No vouchers found</td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+  <tbody>
+    {% for voucher in vouchers %}
+      <tr
+        class="voucher-row"
+        hx-get="{{ url_for('voucher.preview_voucher', voucher_id=voucher.id) }}"
+        hx-target="#preview"
+        hx-swap="innerHTML"
+        style="cursor: pointer;"
+      >
+        <td class="refnum-col text-center">{{ voucher.reference_number }}</td>
+      </tr>
+    {% else %}
+      <tr>
+        <td colspan="1" class="text-center text-muted">No vouchers found</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
 <style>
-  .vouchers-today {
+  .todays-table {
     width: 100%;
     table-layout: fixed;
     border-collapse: collapse;
+    max-height: 100%;
   }
 
-  .vouchers-today td {
-    font-size: small;
-    padding: 0.5rem 0 0.5rem 0;
+  .todays-table th,
+  .todays-table td {
+    padding: 0.75rem 0.75rem; /* uniform padding */
     vertical-align: middle;
     overflow-wrap: break-word;
     word-break: break-word;
@@ -44,36 +43,36 @@
     border-bottom: 1px solid #dee2e6;
     text-align: center;
   }
-  .refnum-col {
-    font-weight: normal;
-  }
 
-  .vouchers-today thead th {
+  .todays-table thead th {
     position: sticky;
     top: 0;
-    background-color: white;
+    background-color: #f8f9fa;
     z-index: 2;
+    background-color: white;
+    font-weight: 600;
+    text-align: center; /* center header text for better alignment */
   }
 
-  .vouchers-today tbody tr:hover {
+  .todays-table tbody tr:hover {
     background-color: #f1f3f5;
   }
 
-  .refnum-col {
-    width: 6rem;
-    text-align: left;
+  .todays-table td {
+    overflow: hidden;
+    white-space: nowrap;
   }
 
   /* highlight the row that is currently in view */
-  .vouchers-today tbody tr.active-row {
+  .todays-table tbody tr.active-row {
     background-color: #e7f1ff; /* light blue background */
     transition: background-color 0.2s ease-in-out;
   }
-  .vouchers-today tbody tr.active-row td {
+  .todays-table tbody tr.active-row td {
     font-weight: 600; /* optional bold text */
   }
 
-  .vouchers-today tbody tr {
+  .todays-table tbody tr {
     scroll-margin-top: 40px; /* match or slightly exceed header height */
   }
 

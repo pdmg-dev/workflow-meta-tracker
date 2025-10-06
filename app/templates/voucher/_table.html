@@ -5,12 +5,16 @@
         <th class="checkbox-col">
           <input type="checkbox" id="select-all" />
         </th>
-        <th class="refnum-col text-start text-muted">Reference #</th>
+        <th class="type text-start text-muted">Type</th>
+        <th class="voucher-id text-start text-muted">Voucher ID</th>
         <th class="payee-col text-start text-muted">Payee</th>
-        <th class="amount-col text-end text-muted">Amount</th>
+        <th class="amount-col text-end text-muted pe-3">Amount</th>
         <th class="date-col text-start text-muted">Date Received</th>
-        <th class="assto-col text-start text-muted">Assigned To</th>
+        <th class="origin text-start text-muted">Origin</th>
         <th class="status-col text-muted">Status</th>
+        <th class="nut-col">
+          <i class="bi bi-nut fs-5"></i>
+        </th>
       </tr>
     </thead>
 
@@ -27,12 +31,13 @@
           <td class="checkbox-col">
             <input type="checkbox" name="voucher_ids" value="{{ voucher.id }}" />
           </td>
-          <td class="refnum-col text-start">{{ voucher.reference_number }}</td>
-          <td class="payee-col text-start fw-bold">{{ voucher.payee }}</td>
-          <td class="amount-col text-end">{{ "{:,.2f}".format(voucher.amount) }}</td>
+          <td class="type text-start">{{ voucher.voucher_type.name }}</td>
+          <td class="voucher-id text-start">{{ voucher.reference_number }}</td>
+          <td class="payee-col text-start">{{ voucher.payee }}</td>
+          <td class="amount-col text-end pe-3">{{ "{:,.2f}".format(voucher.amount) }}</td>
           <td class="date-col text-start">{{ voucher.date_received | local_time }}</td>
-          <td class="assto-col text-start fw-bold">{{ voucher.assigned_to.name if voucher.assigned_to else "-" }}</td>
-          <td class="status-col text-center">
+          <td class="origin text-start">{{ voucher.origin.keyword }}</td>
+          <td class="status-col">
             <span
               class="badge
               {% if voucher.status.code == 'checked' %}
@@ -50,6 +55,7 @@
               {{ voucher.status.name }}
             </span>
           </td>
+          <td class="dots"><i class="bi bi-three-dots-vertical"></i></td>
         </tr>
       {% else %}
         <tr>
@@ -149,25 +155,20 @@
   /* Modern table with equal column widths */
   .voucher-table {
     width: 100%;
-    table-layout: fixed; /* equal-width columns */
     border-collapse: collapse;
-    font-size: 0.85rem;
     max-height: 100%;
   }
 
   /* Narrow checkbox column */
   .voucher-table th.checkbox-col,
   .voucher-table td.checkbox-col {
-    width: 1.5rem; /* or try 2rem if needed */
-    padding-top: 1rem;
-    padding-left: 0.5rem;
-    padding-right: 0;
-    text-align: center;
+    width: 1rem;
+    padding-left: 0;
   }
 
   .voucher-table th,
   .voucher-table td {
-    padding: 0.75rem 0.75rem; /* uniform padding */
+    padding: 1rem; /* uniform padding */
     vertical-align: middle;
     overflow-wrap: break-word; /* wrap long words */
     word-break: break-word;
@@ -181,17 +182,13 @@
     background-color: #f8f9fa;
     z-index: 2;
     background-color: white;
-    font-weight: 600;
+    font-weight: normal;
     text-align: center; /* center header text for better alignment */
   }
 
   .voucher-table tbody td {
     text-align: center; /* default center alignment */
-  }
-
-  /* Right-align amounts and dates for readability */
-  .voucher-table td.text-end {
-    text-align: right;
+    vertical-align: middle;
   }
 
   .voucher-table td {
@@ -201,48 +198,20 @@
 
   input[type="checkbox"] {
     accent-color: #0d6efd; /* Bootstrap 5 primary blue */
+    margin: 0;
+    vertical-align: middle;
   }
 
-  /* Custom column widths */
-  .voucher-table th.refnum-col,
-  .voucher-table td.refnum-col {
-    width: 7rem;
+  .voucher-table tbody tr.active-row td,
+  .voucher-table tbody tr:focus td {
+    font-weight: normal;
+    background-color: #eaeaea; /* light blue background */
+    transition: background-color 0.25s ease-in-out;
+    outline: none;
+    vertical-align: middle;
   }
 
-  .voucher-table th.payee-col,
-  .voucher-table td.payee-col {
-    width: 9rem;
-  }
-
-  .voucher-table th.amount-col,
-  .voucher-table td.amount-col {
-    width: 5rem;
-  }
-
-  .voucher-table th.date-col,
-  .voucher-table td.date-col {
-    width: 7rem;
-  }
-
-  .voucher-table th.assto-col,
-  .voucher-table td.assto-col {
-    width: 9rem;
-  }
-
-  .voucher-table th.status-col,
-  .voucher-table td.status-col {
-    width: 5rem;
-  }
-  /* highlight the row that is currently in view */
-  .voucher-table tbody tr.active-row {
-    background-color: #e7f1ff; /* light blue background */
-    transition: background-color 0.2s ease-in-out;
-  }
-  .voucher-table tbody tr.active-row td {
-    font-weight: 600; /* optional bold text */
-  }
-
-  .voucher-table tbody tr {
-    scroll-margin-top: 40px; /* match or slightly exceed header height */
+  .voucher-row:focus {
+    outline: none;
   }
 </style>

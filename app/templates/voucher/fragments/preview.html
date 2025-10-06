@@ -2,7 +2,7 @@
 {% if voucher %}
   <div class="voucher-preview h-100 d-flex flex-column gap-2">
     <div class="group">
-      <div class="label text-muted">Reference #</div>
+      <div class="label text-muted">Voucher ID  </div>
       <div class="value fw-bold">{{ voucher.reference_number }}</div>
       <div class="label text-muted">Date Received</div>
       <div class="value">{{ voucher.date_received | local_time }}</div>
@@ -27,7 +27,7 @@
     <div class="d-flex justify-content-end gap-2">
       <a
         class="btn btn-primary"
-        hx-get="{{ url_for('voucher.edit_voucher', voucher_id=voucher.id ) }}"
+        hx-get="{{ url_for('voucher.edit_voucher_form', voucher_id=voucher.id ) }}"
         hx-target="#entry-form-container"
         hx-swap="innerHTML"
         hx-push-url="true"

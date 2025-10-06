@@ -4,17 +4,17 @@
     <div class="content-header">
       <h4 class="content-title">Vouchers</h4>
       <a href="{{ url_for('voucher.new_voucher') }}" class="btn btn-primary">
-        <i class="bi bi-file-earmark-plus me-1"></i>New
+        <i class="plus-icon bi bi-plus me-1"></i>New Voucher
       </a>
     </div>
 
     <div class="vouchers">
       <div class="card">
-        <h6 class="card-header text-muted">List</h6>
+        <h6 class="card-header text-muted">Voucher List</h6>
         {# TODO: Put proper card header content here. #}
         <div class="d-flex justify-content-left gap-2 ps-3">
           <button
-            class="btn btn-primary btn-sm"
+            class="btn btn-primary"
             hx-post="{{ url_for('voucher.bulk_update_status') }}"
             hx-target="#table-container"
             hx-swap="innerHTML"
@@ -24,7 +24,7 @@
           </button>
 
           <button
-            class="btn btn-danger btn-sm"
+            class="btn btn-danger"
             hx-post="{{ url_for('voucher.bulk_update_status', target='returned') }}"
             hx-target="#table-container"
             hx-swap="innerHTML"
@@ -32,9 +32,16 @@
           >
             Mark as Returned
           </button>
-        </div>
 
-        <div id="table-container" class="table-container scroll-area">{% include 'voucher/_table.html' %}</div>
+          
+
+
+
+        </div>
+        
+        <div class="card-body">
+          <div id="table-container" class="table-container scroll-area">{% include 'voucher/_table.html' %}</div>
+        </div>
       </div>
 
       <div class="card">
@@ -49,6 +56,7 @@
           </div>
         </div>
       </div>
+
     </div>
   </div>
 {% endblock %}
@@ -108,16 +116,8 @@
       overflow: hidden;
     }
 
-    /* Remove native black focus ring */
-    .voucher-row:focus {
-      outline: none;
-    }
-
-    /* Our custom highlight */
-    .voucher-table tbody tr.active-row {
-      background-color: #e7f1ff;
-      transition: background-color 0.2s ease-in-out;
-      font-weight: 600;
+    .plus-icon {
+      vertical-align: middle;
     }
   </style>
 {% endblock %}

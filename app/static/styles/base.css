@@ -8,10 +8,9 @@ body {
   flex-direction: column;
   max-width: 100vw;
   max-height: 100vh;
-  padding: 1.5rem;
-  background-color: lightgrey;
+  padding: 0.5rem 1rem 1rem 1rem;
+  background-color: #dcdbd7;
   font-family: "Inter", sans-serif;
-  scrollbar-gutter: stable; /* modern browsers, avoids layout jump */
 }
 
 main {
@@ -23,6 +22,7 @@ main {
 
 /* # Global - Buttons: Smooth corners + gentle shadow*/
 .btn {
+  border-radius: 0.5rem;
   box-shadow: var(--bs-box-shadow-sm);
   transition:
     box-shadow 0.1s ease,
@@ -31,7 +31,6 @@ main {
 
 .btn:hover,
 .btn:focus {
-  box-shadow: var(--bs-box-shadow); /* slightly deeper on hover/focus */
   transform: translateY(-1px); /* subtle lift effect */
 }
 
@@ -39,7 +38,7 @@ main {
 .content-container {
   display: grid;
   grid-template-rows: auto 1fr; /* Header + Content */
-  height: calc(100vh - 91px); /* e.g., 100vh - 91px */
+  height: calc(100vh);
   padding: 0rem;
   gap: 1rem;
 }
@@ -61,7 +60,6 @@ main {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr); /* Header + Scrollable Table */
   background-color: white;
-  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -69,10 +67,8 @@ main {
   overflow-y: auto;
   min-height: 0;
   flex-grow: 1;
-  min-height: 0;
   overflow-x: hidden;
   scrollbar-width: none;
-  border-radius: inherit;
 }
 
 .scroll-area::-webkit-scrollbar {
@@ -88,13 +84,14 @@ main {
   flex-grow: 1;
   border: none;
   min-height: 0;
+  border-radius: 1rem;
 }
 
 .card .card-header {
   border-top-left-radius: 1rem;
   border-top-right-radius: 1rem;
   background-color: white;
-  padding: 1rem 1rem 0.5rem 1rem;
+  padding: 1.5rem 1rem 1rem 1rem;
   border: none;
   font-weight: bold;
 }

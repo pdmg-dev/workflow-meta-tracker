@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg py-2">
+<nav class="navbar navbar-expand-sm py-2">
   <div class="container-fluid px-0">
     <a class="navbar-brand fw-bold text-primary" href="{{ url_for('tracker.dashboard') }}">VSYNC</a>
     {% if current_user.is_authenticated %}
@@ -27,7 +27,7 @@
           <!-- Right-Aligned Logout Button -->
           <div class="ms-auto">
             <form action="{{ url_for('auth.logout') }}" method="post" class="d-inline">
-              <button type="submit" class="btn btn-outline-primary">Logout</button>
+              <button type="submit" class="btn btn-outline-secondary">Logout</button>
             </form>
           </div>
         </div>
@@ -40,15 +40,18 @@
   <style>
     /* Navbar: Center nav items + active state */
     .nav-center .btn {
-      background-color: lightgrey;
+      background-color: #dcdbd7;
       border: none;
       box-shadow: none;
       color: #6e6e6e;
+      font-weight: bold;
     }
 
     .nav-center .btn.active {
-      background-color: #eaeaea;
+      background-color: #f1f1f1;
       color: black;
     }
+
+
   </style>
 {% endblock %}
