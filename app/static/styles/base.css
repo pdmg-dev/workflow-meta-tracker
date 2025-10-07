@@ -38,7 +38,7 @@ main {
 .content-container {
   display: grid;
   grid-template-rows: auto 1fr; /* Header + Content */
-  height: calc(100vh);
+  height: calc(100vh - 70px);
   padding: 0rem;
   gap: 1rem;
 }
