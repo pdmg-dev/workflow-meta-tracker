@@ -8,7 +8,7 @@
       </a>
     </div>
 
-    <div class="vouchers">
+    <div class="fragments">
       <div class="card">
         <h6 class="card-header text-muted">Voucher List</h6>
         {# TODO: Put proper card header content here. #}
@@ -32,31 +32,25 @@
           >
             Mark as Returned
           </button>
-
-          
-
-
-
         </div>
-        
+
         <div class="card-body">
           <div id="table-container" class="table-container scroll-area">{% include 'voucher/_table.html' %}</div>
         </div>
       </div>
 
       <div class="card">
-        <h6 class="card-header text-muted">Details Preview</h6>
+        <h6 class="card-header text-muted">Voucher Details</h6>
         <div class="card-body">
           <div id="voucher-details-preview" class="h-100">
             {% if voucher %}
-              {% include "voucher/_preview.html" %}
+              {% include "voucher/fragments/preview.html" %}
             {% else %}
               <div>No voucher to show.</div>
             {% endif %}
           </div>
         </div>
       </div>
-
     </div>
   </div>
 {% endblock %}
@@ -77,7 +71,7 @@
         row.classList.add("active-row");
         row.focus({ preventScroll: true });
         row.scrollIntoView({ block: "nearest" });
-        htmx.ajax("GET", `/voucher/preview/${row.dataset.voucherId}`, preview);
+        htmx.ajax("GET", `/voucher/${row.dataset.voucherId}/particulars-history`, preview);
       }
 
       rows.forEach((row, i) => row.addEventListener("click", () => setActive(i)));
@@ -108,7 +102,7 @@
 
 {% block style %}
   <style>
-    .vouchers {
+    .fragments {
       display: grid;
       grid-template-columns: 4fr 400px;
       gap: 1rem;
