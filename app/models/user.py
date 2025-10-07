@@ -10,6 +10,12 @@ user_roles = db.Table(
     db.Column("role_id", db.Integer, db.ForeignKey("roles.id"), primary_key=True),
 )
 
+user_voucher_types = db.Table(
+    "user_voucher_types",
+    db.Column("user_id", db.Integer, db.ForeignKey("users.id"), primary_key=True),
+    db.Column("voucher_type_id", db.Integer, db.ForeignKey("voucher_types.id"), primary_key=True),
+)
+
 
 class User(db.Model, UserMixin):
     __tablename__ = "users"
@@ -20,6 +26,7 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(128), nullable=False)
 
     roles = db.relationship("Role", secondary=user_roles, back_populates="users")
+    voucher_types = db.relationship("VoucherType", secondary=user_voucher_types, back_populates="users")
 
     encoded_vouchers = db.relationship("Voucher", foreign_keys="Voucher.encoded_by_id", back_populates="encoder")
     edited_vouchers = db.relationship("Voucher", foreign_keys="Voucher.edited_by_id", back_populates="editor")

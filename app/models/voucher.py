@@ -5,7 +5,7 @@ from sqlalchemy import func
 
 from app.extensions import db
 
-from .user import role_voucher_types, status_transition_roles
+from .user import role_voucher_types, status_transition_roles, user_voucher_types
 
 
 class Voucher(db.Model):
@@ -59,6 +59,7 @@ class VoucherType(db.Model):
 
     vouchers = db.relationship("Voucher", back_populates="voucher_type")
     roles = db.relationship("Role", secondary=role_voucher_types, back_populates="voucher_types")
+    users = db.relationship("User", secondary=user_voucher_types, back_populates="voucher_types")
 
 
 class VoucherOrigin(db.Model):
