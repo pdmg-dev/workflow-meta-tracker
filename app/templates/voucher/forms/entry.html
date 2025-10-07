@@ -158,9 +158,24 @@
 </form>
 
 <div class="position-absolute bottom-0 start-0 mb-3 ms-3">
-  <a class="btn btn-outline-secondary" href="#" hx-on="click: clearForm('#entry-form-container form')">
-    <i class="bi bi-x-lg me-1"></i>Cancel
-  </a>
+  {% if mode == "edit" %}
+    <a class="btn btn-outline-secondary" href="{{ request.referrer }}"> <i class="bi bi-x-lg me-1"></i>Cancel</a>
+  {% elif mode == "new" %}
+    <a class="btn btn-outline-secondary" href="#" hx-on="click: clearForm('#entry-form-container form')">
+      <i class="bi bi-x-lg me-1"></i>
+      Cancel
+    </a>
+  {% else %}
+    <a
+      class="btn btn-outline-secondary"
+      hx-get="{{ url_for('voucher.new_voucher') }}"
+      hx-target="#entry-form-container"
+      hx-swap="innerHTML"
+    >
+      <i class="bi bi-x-lg me-1"></i>
+      Cancel
+    </a>
+  {% endif %}
 </div>
 
 <script>
