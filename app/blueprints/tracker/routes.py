@@ -28,13 +28,24 @@ def dashboard():
 @tracker_bp.route("/vouchers", methods=["GET"])
 @login_required
 def view_vouchers():
+    # Check if user has the 'encoder' role
+    is_encoder = any(role.code == "encoder" for role in current_user.roles)
+
+    if is_encoder:
+        vouchers = Voucher.query.all()
+    else:
+        allowed_type_ids = [vt.id for vt in current_user.voucher_types]
+        vouchers = Voucher.query.filter(Voucher.voucher_type_id.in_(allowed_type_ids)).all()
+
+    # Sort vouchers by reference number
     vouchers = sorted(
-        Voucher.query.all(),
+        vouchers,
         key=lambda v: (
-            int(v.reference_number[1:3]),  # year (25)
-            int(v.reference_number[3:5]),  # month (10)
-            int(v.reference_number[5:]),  # sequence (0042)
+            int(v.reference_number[1:3]),  # year
+            int(v.reference_number[3:5]),  # month
+            int(v.reference_number[5:]),  # sequence
         ),
         reverse=True,
     )
+
     return render_template("vouchers.html", vouchers=vouchers)
