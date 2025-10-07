@@ -27,7 +27,10 @@ def new_voucher():
             flash("Voucher added successfully", "success")
             return render_template("voucher/fragments/new.html", vouchers=vouchers, form=form, voucher=voucher)
         return render_template("voucher/forms/entry.html", form=form)
-    return render_template("voucher/new.html", vouchers=vouchers, form=form)
+    # For the cancel button
+    if request.headers.get("HX-Request") == "true":
+        return render_template("voucher/forms/entry.html", form=form)
+    return render_template("voucher/new.html", vouchers=vouchers, form=form, mode="new")
 
 
 @voucher_bp.route("/voucher/<int:voucher_id>/edit", methods=["GET", "POST"])
@@ -43,10 +46,19 @@ def edit_voucher(voucher_id):
             flash("Voucher updated successfully.", "success")
             return render_template("voucher/fragments/new.html", vouchers=vouchers, form=form, voucher=voucher)
         return render_template("voucher/forms/entry.html", form=form)
-    return render_template("voucher/edit.html", form=form, voucher=voucher, vouchers=vouchers)
+
+    form.date_received.data = (
+        voucher.date_received.replace(tzinfo=ZoneInfo("UTC"))
+        .astimezone(ZoneInfo("Asia/Manila"))
+        .strftime("%m/%d/%Y %I:%M %p")
+    )
+    form.voucher_type.data = voucher.voucher_type.id
+    form.origin_id.data = voucher.origin.id
+    form.origin.data = voucher.origin.keyword or voucher.origin.name
+    return render_template("voucher/edit.html", form=form, voucher=voucher, vouchers=vouchers, mode="edit")
 
 
-@voucher_bp.route("/voucher/<int:voucher_id>/form")
+@voucher_bp.route("/voucher/<int:voucher_id>/edit-form")
 @login_required
 @require_roles("admin", "encoder")
 def edit_voucher_form(voucher_id):
@@ -77,7 +89,15 @@ def status_history(voucher_id):
     if not voucher:
         return "", 204
     history = voucher.history.order_by(VoucherStatusHistory.updated_at.desc()).all()
-    return render_template("voucher/_history.html", voucher=voucher, history=history)
+    return render_template("voucher/fragments/particulars.html", voucher=voucher, history=history)
+
+
+@voucher_bp.route("/voucher/<int:voucher_id>/particulars-history")
+@login_required
+def particulars_history(voucher_id):
+    voucher = db.session.get(Voucher, voucher_id)
+    history = voucher.history.order_by(VoucherStatusHistory.updated_at.desc())
+    return render_template("voucher/fragments/particulars.html", voucher=voucher, history=history)
 
 
 @voucher_bp.route("/voucher/bulk-update", methods=["POST"])
