@@ -13,7 +13,7 @@
         <th class="origin text-start text-muted">Origin</th>
         <th class="status-col text-muted">Status</th>
         <th class="nut-col">
-          <i class="bi bi-nut fs-5"></i>
+          <i class="nut-icon bi bi-nut fs-5"></i>
         </th>
       </tr>
     </thead>
@@ -24,7 +24,6 @@
           class="voucher-row"
           data-voucher-id="{{ voucher.id }}"
           tabindex="0"
-          hx-get="{{ url_for('voucher.status_history', voucher_id=voucher.id) }}"
           hx-target="#voucher-details-preview"
           hx-swap="innerHTML"
         >
@@ -32,10 +31,10 @@
             <input type="checkbox" name="voucher_ids" value="{{ voucher.id }}" />
           </td>
           <td class="type text-start">{{ voucher.voucher_type.name }}</td>
-          <td class="voucher-id text-start">{{ voucher.reference_number }}</td>
+          <td class="voucher-id text-start text-muted">{{ voucher.reference_number }}</td>
           <td class="payee-col text-start">{{ voucher.payee }}</td>
           <td class="amount-col text-end pe-3">{{ "{:,.2f}".format(voucher.amount) }}</td>
-          <td class="date-col text-start">{{ voucher.date_received | local_time }}</td>
+          <td class="date-col text-start text-muted">{{ voucher.date_received | local_time }}</td>
           <td class="origin text-start">{{ voucher.origin.keyword }}</td>
           <td class="status-col">
             <span
@@ -55,7 +54,18 @@
               {{ voucher.status.name }}
             </span>
           </td>
-          <td class="dots"><i class="bi bi-three-dots-vertical"></i></td>
+          <td class="dots">
+            <div class="dropdown">
+              <i class="bi bi-three-dots-vertical" role="button" data-bs-toggle="dropdown" aria-expanded="false"></i>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('voucher.edit_voucher', voucher_id=voucher.id) }}">
+                    Edit
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </td>
         </tr>
       {% else %}
         <tr>
@@ -97,22 +107,6 @@
     const preview = "#voucher-details-preview";
     let currentIndex = -1;
 
-    // --- Core function to change focus/highlight + load details
-    function setActive(idx) {
-      if (idx < 0 || idx >= rows.length) return;
-
-      if (currentIndex !== -1) rows[currentIndex].classList.remove("active-row");
-      currentIndex = idx;
-
-      const row = rows[idx];
-      row.classList.add("active-row");
-      row.focus({ preventScroll: true }); // keep keyboard focus for arrow keys
-      row.scrollIntoView({ block: "nearest" });
-    }
-
-    // --- Click on row: focus & load
-    rows.forEach((row, i) => row.addEventListener("click", () => setActive(i)));
-
     // --- Arrow-key navigation
     document.addEventListener("keydown", (e) => {
       if (currentIndex === -1) return;
@@ -152,7 +146,6 @@
 </script>
 
 <style>
-  /* Modern table with equal column widths */
   .voucher-table {
     width: 100%;
     border-collapse: collapse;
@@ -192,7 +185,7 @@
   }
 
   .voucher-table td {
-    overflow: hidden;
+    overflow: visible;
     white-space: nowrap;
   }
 
@@ -213,5 +206,20 @@
 
   .voucher-row:focus {
     outline: none;
+  }
+
+  .dots {
+    position: relative;
+    overflow: visible;
+  }
+
+  .dropdown-menu {
+    z-index: 1000;
+  }
+
+  .nut-icon {
+    display: inline-block;
+    transform: rotate(90deg);
+    color: #595c5f;
   }
 </style>
