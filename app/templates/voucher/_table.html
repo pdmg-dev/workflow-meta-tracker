@@ -24,6 +24,7 @@
           class="voucher-row"
           data-voucher-id="{{ voucher.id }}"
           tabindex="0"
+          hx-get="{{ url_for('voucher.particulars', voucher_id=voucher.id) }}"
           hx-target="#voucher-details-preview"
           hx-swap="innerHTML"
         >
@@ -37,22 +38,26 @@
           <td class="date-col text-start text-muted">{{ voucher.date_received | local_time }}</td>
           <td class="origin text-start">{{ voucher.origin.keyword }}</td>
           <td class="status-col">
-            <span
-              class="badge
-              {% if voucher.status.code == 'checked' %}
-                bg-warning
-              {% elif voucher.status.code == 'sorted' %}
-                bg-info
-              {% elif voucher.status.code == 'approved' %}
-                bg-success
-              {% elif voucher.status.code == 'returned' %}
-                bg-danger
-              {% else %}
-                bg-secondary
-              {% endif %}"
-            >
-              {{ voucher.status.name }}
-            </span>
+            <div class="row d-inline-block">
+              <div
+                class="badge 
+              {% if voucher.status.code == 'received' %}
+                  bg-secondary
+                {% elif voucher.status.code == 'checked' %}
+                  bg-primary
+                {% elif voucher.status.code == 'sorted' %}
+                  bg-warning
+                {% elif voucher.status.code == 'approved' %}
+                  bg-success
+                {% else %}
+                  bg-danger
+                {% endif %}"
+                style="width: 65px;"
+              >
+                {{ voucher.status.name }}
+              </div>
+              <div class="updated_at">{{ voucher.updated_at | local_time_short }}</div>
+            </div>
           </td>
           <td class="dots">
             <div class="dropdown">
@@ -61,6 +66,16 @@
                 <li>
                   <a class="dropdown-item" href="{{ url_for('voucher.edit_voucher', voucher_id=voucher.id) }}">
                     Edit
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    hx-get="{{ url_for('voucher.status_history', voucher_id=voucher.id) }}"
+                    hx-target="#voucher-details-preview"
+                    hx-swap="innerHTML"
+                  >
+                    View Status History
                   </a>
                 </li>
               </ul>
@@ -143,9 +158,53 @@
     // --- Auto-select first row on page load
     if (rows.length) setActive(0);
   });
+
+  // Handle clicks inside the dots column
+  document.querySelectorAll(".dropdown-item").forEach((item) => {
+    item.addEventListener("click", (event) => {
+      const dropdownToggle = item.closest(".dropdown")?.querySelector("[data-bs-toggle='dropdown']");
+      if (!dropdownToggle) return;
+
+      const dropdownInstance = bootstrap.Dropdown.getOrCreateInstance(dropdownToggle);
+
+      // Let Bootstrap handle the click first, then close manually
+      setTimeout(() => {
+        dropdownInstance.hide();
+
+        // Optional: trigger HTMX manually if needed
+        if (item.hasAttribute("hx-get")) {
+          const url = item.getAttribute("hx-get");
+          htmx.ajax("GET", url, "#voucher-details-preview");
+        } else if (item.hasAttribute("hx-post")) {
+          const url = item.getAttribute("hx-post");
+          htmx.ajax("POST", url, "#voucher-details-preview");
+        }
+      }, 100); // Delay ensures Bootstrap finishes its internal logic
+    });
+  });
+
+  // ✅ This must be outside the click handler
+  document.body.addEventListener("htmx:beforeRequest", function (e) {
+    const item = e.target.closest(".dropdown-item");
+    if (item) {
+      const dropdownToggle = item.closest(".dropdown")?.querySelector("[data-bs-toggle='dropdown']");
+      if (dropdownToggle) {
+        const dropdownInstance = bootstrap.Dropdown.getOrCreateInstance(dropdownToggle);
+        dropdownInstance.hide();
+      }
+    }
+  });
 </script>
 
 <style>
+  .voucher-row {
+    cursor: pointer;
+  }
+
+  .voucher-row .dots {
+    pointer-events: auto;
+  }
+
   .voucher-table {
     width: 100%;
     border-collapse: collapse;
@@ -161,7 +220,7 @@
 
   .voucher-table th,
   .voucher-table td {
-    padding: 1rem; /* uniform padding */
+    padding: 0.75rem; /* uniform padding */
     vertical-align: middle;
     overflow-wrap: break-word; /* wrap long words */
     word-break: break-word;
@@ -221,5 +280,9 @@
     display: inline-block;
     transform: rotate(90deg);
     color: #595c5f;
+  }
+
+  .updated_at {
+    font-size: xx-small;
   }
 </style>

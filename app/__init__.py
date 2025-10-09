@@ -36,6 +36,7 @@ def create_app(config_class=None):
     app.jinja_env.filters["local_time"] = filters.local_time
     app.jinja_env.filters["voucher_type"] = filters.voucher_type
     app.jinja_env.filters["voucher_status"] = filters.voucher_status
+    app.jinja_env.filters["local_time_short"] = filters.local_time_short
 
     # Register event listeners
     from .utils import ref_number  # noqa: F401
