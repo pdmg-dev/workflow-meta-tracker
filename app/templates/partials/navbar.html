@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-sm py-2">
   <div class="container-fluid px-0">
-    <a class="navbar-brand fw-bold text-primary" href="{{ url_for('tracker.dashboard') }}">VSYNC</a>
+    <a class="navbar-brand"><span class="dv">DV</span><span class="flow">Flow</span></a>
     {% if current_user.is_authenticated %}
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
@@ -8,7 +8,6 @@
 
       <div class="collapse navbar-collapse" id="navbarNav">
         <div class="container-fluid d-flex justify-content-between align-items-center pe-0 ps-0">
-          <!-- Centered Dashboard / Add Voucher Buttons -->
           <div class="nav-center position-absolute start-50 translate-middle-x">
             <a
               href="{{ url_for('tracker.dashboard') }}"
@@ -23,8 +22,6 @@
               Vouchers
             </a>
           </div>
-
-          <!-- Right-Aligned Logout Button -->
           <div class="ms-auto">
             <form action="{{ url_for('auth.logout') }}" method="post" class="d-inline">
               <button type="submit" class="btn btn-outline-secondary">Logout</button>
@@ -40,18 +37,25 @@
   <style>
     /* Navbar: Center nav items + active state */
     .nav-center .btn {
-      background-color: #dcdbd7;
+      background-color: #f1f1f1;
       border: none;
       box-shadow: none;
-      color: #6e6e6e;
-      font-weight: bold;
+      color: #737373;
     }
 
     .nav-center .btn.active {
-      background-color: #f1f1f1;
+      background-color: #eaeaea;
       color: black;
     }
 
+    .dv {
+      color: black;
+      font-weight: bolder;
+    }
 
+    .flow {
+      color: #0d6efd;
+      font-weight: bold;
+    }
   </style>
 {% endblock %}
