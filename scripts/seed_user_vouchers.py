@@ -4,12 +4,13 @@ from app.models.voucher import VoucherType
 
 
 def seed_user_vouchers():
+    voucher_types = db.session.query(VoucherType).all()
     user_map = {
         "Tin": ["Projects", "Salary", "Others"],
         "Cecil": ["Payroll"],
         "Jade": ["Travel", "Gasoline"],
         "Mau": ["Projects", "Telephone", "Donation"],
-        "Ivy": ["Salary"],
+        "Ivy": voucher_types,
     }
 
     for full_name, voucher_names in user_map.items():
