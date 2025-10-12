@@ -1,7 +1,7 @@
 {# app/templates/voucher/forms/entry.html #}
 <form
   class="d-flex flex-column gap-2 h-100"
-  hx-post="{{ url_for('voucher.new_voucher') }}"
+  hx-post="{{ url_for('voucher.edit_voucher', voucher_id=voucher.id) }}"
   hx-target="#entry-form-container"
   hx-swap="innerHTML"
 >
