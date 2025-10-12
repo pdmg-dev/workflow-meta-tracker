@@ -98,3 +98,13 @@ class VoucherForm(FlaskForm):
             return
 
         raise ValidationError("Invalid origin. Please select an office by picking from the list.")
+
+
+class RemarksForm(FlaskForm):
+    remarks = TextAreaField(
+        "Remarks",
+        validators=[
+            InputRequired(message="Please describe the particulars."),
+            Length(max=2000, message="Particulars too long (max 2000 chars)."),
+        ],
+    )

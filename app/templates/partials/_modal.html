@@ -1,12 +1,46 @@
-<!-- templates/_modal.html -->
-<div class="modal fade" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+<div class="modal fade" id="dynamicModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">{{ modal_title }}</h5>
+        <h6 class="modal-title">{{ modal_title }}</h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body p-3">{% block modal_body %}{% endblock %}</div>
+      <div class="modal-body">
+        {% block modal_body %}
+        {% endblock %}
+      </div>
     </div>
   </div>
 </div>
+
+<style>
+  .modal-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    border: none;
+    min-height: 0;
+    border-radius: 1rem;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    border: none;
+    padding: 1.5rem 1rem 1rem 1rem;
+  }
+
+  .modal-title {
+    font-weight: bold;
+  }
+
+  .modal-body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+    padding: 0.5rem 1rem 1rem 1rem;
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+  }
+</style>
