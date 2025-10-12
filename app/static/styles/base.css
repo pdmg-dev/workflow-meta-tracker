@@ -77,7 +77,7 @@ main {
   overflow: hidden;
 }
 
-/* # Global - Cards: soft corners + light shadow */
+/* # Global - Cards: soft corners */
 .card {
   display: flex;
   flex-direction: column;
@@ -94,6 +94,8 @@ main {
   padding: 1.5rem 1rem 1rem 1rem;
   border: none;
   font-weight: bold;
+  display: flex;
+  justify-content: space-between;
 }
 
 .card-body {

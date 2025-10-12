@@ -59,6 +59,7 @@
               <div class="updated_at">{{ voucher.updated_at | local_time_short }}</div>
             </div>
           </td>
+
           <td class="dots">
             <div class="dropdown">
               <i class="bi bi-three-dots-vertical" role="button" data-bs-toggle="dropdown" aria-expanded="false"></i>
@@ -71,11 +72,26 @@
                 <li>
                   <a
                     class="dropdown-item"
+                    hx-get="{{ url_for('voucher.mark_as_returned', voucher_id=voucher.id) }}"
+                    hx-target="#modal-container"
+                    hx-swap="innerHTML"
+                  >
+                    Mark as Returned
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
                     hx-get="{{ url_for('voucher.status_history', voucher_id=voucher.id) }}"
                     hx-target="#voucher-details-preview"
                     hx-swap="innerHTML"
                   >
                     View Status History
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" hx-target="#voucher-details-preview" hx-swap="innerHTML">
+                    View More Details
                   </a>
                 </li>
               </ul>
@@ -84,15 +100,15 @@
         </tr>
       {% else %}
         <tr>
-          <td colspan="7" class="text-center text-muted">No vouchers found</td>
+          <td colspan="9" class="text-center text-muted">No vouchers found</td>
         </tr>
       {% endfor %}
     </tbody>
   </table>
 </form>
+<div id="modal-container"></div>
 
 <script>
-  // static/js/voucher-table.js
   (function () {
     if (window.__voucherTableBound) return;
     window.__voucherTableBound = true;
@@ -119,7 +135,6 @@
   document.addEventListener("DOMContentLoaded", function () {
     const container = document.querySelector("#table-container");
     const rows = Array.from(container.querySelectorAll(".voucher-row"));
-    const preview = "#voucher-details-preview";
     let currentIndex = -1;
 
     // --- Arrow-key navigation
@@ -183,7 +198,7 @@
     });
   });
 
-  // ✅ This must be outside the click handler
+  // This must be outside the click handler
   document.body.addEventListener("htmx:beforeRequest", function (e) {
     const item = e.target.closest(".dropdown-item");
     if (item) {
@@ -193,6 +208,30 @@
         dropdownInstance.hide();
       }
     }
+  });
+
+  function bindVoucherSearch() {
+    const searchInput = document.getElementById("voucher-search");
+    const rows = document.querySelectorAll(".voucher-row");
+
+    if (!searchInput) return;
+
+    searchInput.addEventListener("input", function () {
+      const query = this.value.toLowerCase();
+
+      rows.forEach((row) => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(query) ? "" : "none";
+      });
+    });
+  }
+
+  // Initial bind on page load
+  document.addEventListener("DOMContentLoaded", bindVoucherSearch);
+
+  // Re-bind after HTMX swaps content
+  document.body.addEventListener("htmx:afterSwap", function (e) {
+    bindVoucherSearch();
   });
 </script>
 
@@ -220,12 +259,20 @@
 
   .voucher-table th,
   .voucher-table td {
-    padding: 0.75rem; /* uniform padding */
+    padding: 0.5rem; /* uniform padding */
     vertical-align: middle;
     overflow-wrap: break-word; /* wrap long words */
     word-break: break-word;
     white-space: normal; /* allow line breaks */
     border-bottom: 1px solid #dee2e6; /* subtle row separation */
+  }
+
+  .voucher-table th.payee-col,
+  .voucher-table td.payee-col {
+    max-width: 200px; /* Adjust width as needed */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .voucher-table thead th {

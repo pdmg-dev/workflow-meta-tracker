@@ -1,68 +1,58 @@
-<div class="voucher-history-timeline p-3">
-  <div class="timeline">
-    {% for h in voucher.history|sort(attribute="updated_at") %}
-      <div class="timeline-item">
-        <div class="timeline-date text-muted small">{{ h.updated_at|local_time }}</div>
-        <div class="timeline-marker"></div>
-
-        <div class="timeline-content">
-          <div class="fw-bold">{{ h.status.name }}</div>
-          {% if h.remarks %}
-            <div class="text-secondary small mt-1">{{ h.remarks }}</div>
-          {% endif %}
-          <div class="small text-muted mt-1">Updated by: {{ h.updated_by_user.full_name }}</div>
-        </div>
-      </div>
-    {% else %}
-      <div class="text-muted">No status history yet.</div>
-    {% endfor %}
+<div class="particulars-history h-100 d-flex flex-column flex-grow-1">
+  <div class="label text-muted pb-2">Status History</div>
+  <div style="overflow-y: auto;">
+    <ul class="list-group list-group-flush">
+      {% set latest = voucher.history | sort(attribute="updated_at") | reverse | first %}
+      {% for h in voucher.history|sort(attribute="updated_at") | reverse %}
+        <li class="list-group-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="text-muted">{{ h.updated_at | local_time }}</span>
+            <span
+              class="badge d-inline-block
+              {% if h.status.code == 'received' %}
+                bg-secondary
+              {% elif h.status.code == 'checked' %}
+                bg-primary
+              {% elif h.status.code == 'sorted' %}
+                bg-warning
+              {% elif h.status.code == 'approved' %}
+                bg-success
+              {% else %}
+                bg-danger
+              {% endif %}"
+              style="width: 65px;"
+            >
+              {{ h.status.name }}
+            </span>
+          </div>
+          <div>
+            <div class="mt-1 text-muted fs-6">
+              {% if h.status.code == "received" %}
+                Voucher is encoded by <strong>{{ h.updated_by_user.full_name }}</strong>
+              {% elif h.status.code == "checked" %}
+                Voucher is checked by <strong>{{ h.updated_by_user.full_name }}</strong>
+              {% elif h.status.code == "sorted" %}
+                Voucher is sorted by <strong>{{ h.updated_by_user.full_name }}</strong>
+              {% elif h.status.code == "approved" %}
+                Voucher is approved and signed by <strong>{{ h.updated_by_user.full_name }}</strong>
+              {% else %}
+                Voucher is returned by <strong>{{ h.updated_by_user.full_name }}</strong>
+              {% endif %}
+            </div>
+            {% if h == latest and h.remarks %}
+              <div>{{ h.remarks }}</div>
+            {% endif %}
+          </div>
+        </li>
+      {% else %}
+        <li class="list-group-item text-muted text-center fst-italic">No status history yet.</li>
+      {% endfor %}
+    </ul>
   </div>
 </div>
 
-{% block style %}
-  <style>
-    .timeline {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-    }
-    .timeline-item {
-      display: grid;
-      grid-template-columns: 150px 20px 1fr; /* date | marker | content */
-      align-items: start;
-      column-gap: 1rem;
-    }
-
-    /* Left column (date) */
-    .timeline-date {
-      text-align: right;
-      padding-top: 0.15rem;
-    }
-
-    /* Center marker with vertical line */
-    .timeline-marker {
-      position: relative;
-      width: 14px;
-      height: 14px;
-      margin: 0 auto;
-      background: #0d6efd; /* primary circle */
-      border: 2px solid #fff;
-      border-radius: 50%;
-    }
-    .timeline-marker::before {
-      content: "";
-      position: absolute;
-      top: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 2px;
-      height: calc(100% + 4rem); /* continue line downward */
-      background: #dee2e6;
-    }
-
-    /* Right column (status details) */
-    .timeline-content {
-      padding-top: 0.1rem;
-    }
-  </style>
-{% endblock %}
+<style>
+  .list-group-item {
+    padding: 0.75rem 0 0.75rem 0;
+  }
+</style>
