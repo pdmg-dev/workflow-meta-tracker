@@ -3,57 +3,143 @@
   <div class="content-container">
     <div class="content-header">
       <h4 class="content-title">Dashboard</h4>
-      <a href="{{ url_for('voucher.new_voucher') }}" class="btn btn-primary">
-        <i class="bi bi-plus me-1"></i>New Voucher
-      </a>
+      {% if 'encoder' or 'admin' in current_user.roles | map(attribute='code') | list %}
+        <a href="{{ url_for('voucher.new_voucher') }}" class="btn btn-primary">
+          <i class="plus-icon bi bi-file-earmark-plus me-1"></i>New Voucher
+        </a>
+      {% endif %}
     </div>
 
-    <!-- Dashboard Content -->
-    <div class="dashboard">
+    <div class="fragments">
       <div class="left-panel">
-        <div>{% include "tracker/_card.html" %}</div>
-        <div class="card">
-          <h6 class="card-header text-muted py-3">Recent</h6>
-          <div class="d-flex justify-content-left gap-2 ps-3">
-            <button
-              class="btn btn-primary btn-sm"
-              hx-post="{{ url_for('voucher.bulk_update_status') }}"
-              hx-target="#table-container"
-              hx-swap="innerHTML"
-              hx-include="#update-status-form"
-            >
-              Advance Status
-            </button>
-
-            <button
-              class="btn btn-danger btn-sm"
-              hx-post="{{ url_for('voucher.bulk_update_status', target='returned') }}"
-              hx-target="#table-container"
-              hx-swap="innerHTML"
-              hx-include="#update-status-form"
-            >
-              Mark as Returned
-            </button>
+        <div class="row g-3">
+          <div class="col-3 d-flex">
+            <div class="card">
+              <h4 class="card-header">
+                <i class="file-earmark bi bi-file-earmark"></i>
+              </h4>
+              <div class="card-body">
+                <h6>Received</h6>
+                <div class="d-flex align-item-center">
+                  <h6 class="count me-1">{{ voucher_status["received"].count() }}</h6>
+                </div>
+              </div>
+            </div>
           </div>
+          <div class="col-3 d-flex">
+            <div class="card">
+              <h4 class="card-header">
+                <i class="file-earmark bi bi-file-earmark"></i>
+              </h4>
+              <div class="card-body">
+                <h6>Checked</h6>
+                <h6 class="count">{{ voucher_status["checked"].count() }}</h6>
+              </div>
+            </div>
+          </div>
+          <div class="col-3 d-flex">
+            <div class="card">
+              <h4 class="card-header">
+                <i class="file-earmark bi bi-file-earmark"></i>
+              </h4>
+              <div class="card-body">
+                <h6>Sorted</h6>
+                <h6 class="count">{{ voucher_status["sorted"].count() }}</h6>
+              </div>
+            </div>
+          </div>
+          <div class="col-3 d-flex">
+            <div class="card">
+              <h4 class="card-header">
+                <i class="file-earmark bi bi-file-earmark"></i>
+              </h4>
+              <div class="card-body">
+                <h6>Approved</h6>
+                <h6 class="count">{{ voucher_status["approved"].count() }}</h6>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h6 class="card-header">Recent Vouchers</h6>
+          <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-left gap-2 ps-3">
+              <button
+                class="btn btn-primary"
+                hx-post="{{ url_for('voucher.bulk_update_status') }}"
+                hx-target="#table-container"
+                hx-swap="innerHTML"
+                hx-include="#update-status-form"
+              >
+                <i class="bi bi-arrow-up-circle"></i>
+                Update Status
+              </button>
+              {% if 'admin' in current_user.roles | map(attribute='code') | list %}
+                <button
+                  class="btn btn-danger"
+                  hx-post="{{ url_for('voucher.bulk_update_status', target='returned') }}"
+                  hx-target="#table-container"
+                  hx-swap="innerHTML"
+                  hx-include="#update-status-form"
+                >
+                  Mark as Returned
+                </button>
+              {% endif %}
+            </div>
+            <div class="d-flex justify-content-right gap-2 pe-3">
+              <div class="position-relative">
+                <input type="text" id="voucher-search" class="form-control" placeholder="Search..." />
+              </div>
 
-          <div id="table-container" class="table-container scroll-area">{% include 'voucher/_table.html' %}</div>
+              <div class="dropdown">
+                <button
+                  class="btn btn-outline-secondary dropdown-toggle"
+                  type="button"
+                  id="dropdownMenuButton"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  Sort by
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                  <li><a class="dropdown-item" href="#">Payee</a></li>
+                  <li><a class="dropdown-item" href="#">Amount</a></li>
+                  <li><a class="dropdown-item" href="#">Origin</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="table-container" class="table-container scroll-area">{% include 'voucher/_table.html' %}</div>
+          </div>
         </div>
       </div>
 
       <div class="right-panel">
-        <!-- Analytics Card -->
         <div class="card">
-          <h6 class="card-header text-muted">Status History</h6>
+          <h6 class="card-header">Voucher Compliance</h6>
           <div class="card-body">
-            <p>Select a voucher to view history.</p>
+            <div class="row">
+              <div class="col-4">Expired</div>
+              <div class="col-4">Incomplete</div>
+              <div class="col-4">Invalid</div>
+            </div>
+            <div class="row">
+              <div class="col-6">
+                <h3 class="d-inline">{{ voucher_status["approved"].count() }}</h3>
+                <span class="fr-pend">Released Vouchers</span>
+              </div>
+              <div class="col-6">
+                <h3 class="d-inline">{{ voucher_status["pending"] }}</h3>
+                <span class="fr-pend">Pending Vouchers</span>
+              </div>
+            </div>
           </div>
         </div>
 
         <div class="card" id="particulars">
-          <h6 class="card-header text-muted">Particulars</h6>
-          <div class="card-body" hx-swap="innerHTML">
-            <p>Select a voucher to view particulars.</p>
-          </div>
+          <h6 class="card-header text-muted"></h6>
+          <div class="card-body" hx-swap="innerHTML"></div>
         </div>
       </div>
     </div>
@@ -62,9 +148,9 @@
 
 {% block style %}
   <style>
-    .dashboard {
+    .fragments {
       display: grid;
-      grid-template-columns: 4fr 2fr; /* Left 70%, Right 30% */
+      grid-template-columns: 4fr 400px;
       gap: 1rem;
       min-height: 0;
       overflow: hidden;
@@ -72,16 +158,29 @@
 
     .left-panel {
       display: grid;
-      grid-template-rows: auto 1fr; /* Summary + Table */
+      grid-template-rows: 1fr 3fr;
       gap: 1rem;
       min-height: 0;
     }
 
     .right-panel {
       display: grid;
-      grid-template-rows: 1fr 1fr; /* Analytics + Preview */
+      grid-template-rows: 3fr 2.5fr;
       gap: 1rem;
       min-height: 0;
+    }
+
+    .count {
+      color: #6c757d;
+    }
+
+    .fr-pend {
+      font-size: smaller;
+      color: #6c757d;
+    }
+
+    .file-earmark {
+      color: #6c757d;
     }
   </style>
 {% endblock %}
