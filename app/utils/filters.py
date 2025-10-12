@@ -3,8 +3,6 @@
 import pytz
 from flask import session
 
-from app.models.voucher import VoucherStatus, VoucherType
-
 format = "%m-%d-%y %I:%M %p"
 
 
@@ -51,9 +49,8 @@ def local_time_short(value, format=short_format):
     return local_dt.strftime(format)
 
 
-def voucher_type(vouchers, code):
-    return vouchers.join(VoucherType).filter(VoucherType.code == code).count()
-
-
-def voucher_status(vouchers, code):
-    return vouchers.join(VoucherStatus).filter(VoucherStatus.code == code).count()
+def name_shortener(fullname):
+    initials = [char for char in fullname[::-1] if char.isupper()]
+    fn = fullname.split(" ")[0]
+    short_name = f"{fn} {initials[0]}."
+    return short_name

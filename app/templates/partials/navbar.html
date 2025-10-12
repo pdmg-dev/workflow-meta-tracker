@@ -8,24 +8,44 @@
 
       <div class="collapse navbar-collapse" id="navbarNav">
         <div class="container-fluid d-flex justify-content-between align-items-center pe-0 ps-0">
-          <div class="nav-center position-absolute start-50 translate-middle-x">
+          <div class="nav-buttons position-absolute start-50 translate-middle-x">
             <a
               href="{{ url_for('tracker.dashboard') }}"
-              class="btn {{ 'active' if request.endpoint == 'tracker.dashboard' else '' }}"
+              class="btn btn-outline-secondary {{ 'active' if request.endpoint == 'tracker.dashboard' else '' }}"
             >
               Dashboard
             </a>
             <a
               href="{{ url_for('tracker.view_vouchers') }}"
-              class="btn {{ 'active' if request.endpoint in ['tracker.view_vouchers', 'voucher.new_voucher', 'voucher.edit_voucher'] else '' }}"
+              class="btn btn-outline-secondary  {{ 'active' if request.endpoint in ['tracker.view_vouchers', 'voucher.new_voucher', 'voucher.edit_voucher'] else '' }}"
             >
               Vouchers
             </a>
           </div>
-          <div class="ms-auto">
-            <form action="{{ url_for('auth.logout') }}" method="post" class="d-inline">
-              <button type="submit" class="btn btn-outline-secondary">Logout</button>
-            </form>
+        </div>
+
+        <div class="gap-1 container-fluid d-flex justify-content-end align-items-center pe-0">
+          <button class="btn btn-outline-secondary">
+            <i class="bi bi-moon"></i>
+          </button>
+          <button class="btn btn-outline-secondary">
+            <i class="bi bi-bell"></i>
+          </button>
+
+          <div class="name-role">
+            <div class="dropdown">
+              <div role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="fw-bold text-start p-0">{{ current_user.full_name | short_name() }}</div>
+                <div class="text-muted text-start p-0">{{ current_user.roles[0].name }}</div>
+              </div>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <form action="{{ url_for('auth.logout') }}" method="post">
+                    <button class="dropdown-item" type="submit">Logout</button>
+                  </form>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -36,14 +56,14 @@
 {% block style %}
   <style>
     /* Navbar: Center nav items + active state */
-    .nav-center .btn {
+    .nav-buttons .btn {
       background-color: #f1f1f1;
-      border: none;
+      border-color: #f1f1f1;
       box-shadow: none;
       color: #737373;
     }
 
-    .nav-center .btn.active {
+    .nav-buttons .btn.active {
       background-color: #eaeaea;
       color: black;
     }
@@ -56,6 +76,18 @@
     .flow {
       color: #0d6efd;
       font-weight: bold;
+    }
+
+    .name-role {
+      box-shadow: none;
+      font-size: 11px;
+      padding: 0 0 0 0.25rem;
+      align-items: center;
+      border: none;
+    }
+
+    .dropdown-menu {
+      z-index: 1000;
     }
   </style>
 {% endblock %}
