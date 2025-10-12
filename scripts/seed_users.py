@@ -12,7 +12,7 @@ def seed_users():
         },
         {
             "full_name": "Shane F. Tunzon",
-            "roles": ["admin, encoder", "checker", "sorter", "approver"],
+            "roles": ["admin", "encoder", "checker", "sorter", "approver"],
             "username": "shane",
             "password": "shane",
         },
