@@ -1,7 +1,7 @@
 # app/blueprints/vouchers/routes.py
 from zoneinfo import ZoneInfo
 
-from flask import flash, json, make_response, render_template, request
+from flask import flash, jsonify, render_template, request
 from flask_login import current_user, login_required
 
 from app.blueprints.voucher.services import create_voucher, get_todays_vouchers, update_voucher
@@ -11,7 +11,7 @@ from app.models.voucher import Voucher, VoucherStatusHistory, VoucherStatusTrans
 from app.utils.access_control import require_roles
 
 from . import voucher_bp
-from .forms import RemarksForm, VoucherForm
+from .forms import DVNumberForm, RemarksForm, VoucherForm
 
 
 @voucher_bp.route("/voucher/new", methods=["GET", "POST"])
@@ -105,13 +105,11 @@ def particulars(voucher_id):
 def bulk_update_status():
     ids = request.form.getlist("voucher_ids")
     if not ids:
-        return "No IDs selected", 204
+        return "", 204
 
-    # if manager clicked a “Return” button you can pass ?target=returned
     explicit_code = request.form.get("target_status") or request.args.get("target")
+    user_role_ids = {r.id for r in current_user.roles}
 
-    # Preload a list of allowed transitions for the current user
-    user_role_ids = {role.id for role in current_user.roles}
     allowed_transitions = (
         db.session.query(VoucherStatusTransition)
         .join(VoucherStatusTransition.allowed_roles)
@@ -119,29 +117,24 @@ def bulk_update_status():
         .all()
     )
 
-    # Build lookup: {from_status_id: [transition objects]}
     trans_map = {}
     for t in allowed_transitions:
         trans_map.setdefault(t.from_status_id, []).append(t)
 
-    updated = 0
+    updated_vouchers = []
     for v in Voucher.query.filter(Voucher.id.in_(ids)).all():
         next_t = None
-
         if explicit_code:
-            # explicit target (e.g. "returned")
             next_t = next(
                 (t for t in trans_map.get(v.status_id, []) if t.to_status.code == explicit_code),
                 None,
             )
         else:
-            # normal forward step: just pick the first allowed forward move
-            # (if multiple, pick the one with the lowest id or add custom logic)
             possible = trans_map.get(v.status_id, [])
             next_t = possible[0] if possible else None
 
         if not next_t:
-            continue  # no valid transition for this voucher/user
+            continue
 
         v.status = next_t.to_status
         v.updated_by_id = current_user.id
@@ -153,21 +146,16 @@ def bulk_update_status():
                 remarks=next_t.to_status.remarks,
             )
         )
-        updated += 1
+        updated_vouchers.append(v)
 
-    if not updated:
+    if not updated_vouchers:
         return "", 204
 
     db.session.commit()
 
-    response = make_response(
-        render_template(
-            "voucher/_table.html",
-            vouchers=Voucher.query.order_by(Voucher.date_received.desc()).all(),
-        )
-    )
-    response.headers["HX-Trigger"] = json.dumps({"bulkUpdated": {"message": f"{updated} voucher(s) updated."}})
-    return response
+    payload = {"updated": [{"id": v.id, "status": v.status.name, "code": v.status.code} for v in updated_vouchers]}
+
+    return jsonify(payload)
 
 
 @voucher_bp.route("/voucher/<int:voucher_id>/return")
@@ -176,3 +164,9 @@ def mark_as_returned(voucher_id):
     form = RemarksForm()
     voucher = Voucher.query.get(voucher_id)
     return render_template("voucher/forms/remarks.html", modal_title="Mark as Returned", voucher=voucher, form=form)
+
+
+@voucher_bp.route("/voucher/serial")
+def dv_number():
+    form = DVNumberForm()
+    return render_template("voucher/forms/dv_number.html", form=form)

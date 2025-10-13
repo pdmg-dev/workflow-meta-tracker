@@ -1,5 +1,5 @@
 # app/blueprints/dashboard/views.py
-from flask import redirect, render_template, url_for
+from flask import redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app.models.voucher import Voucher, VoucherStatus
@@ -84,5 +84,8 @@ def view_vouchers():
         ),
         reverse=True,
     )
+    template = "vouchers.html"
+    if request.headers.get("HX-Request"):
+        template = "partials/vouchers_content.html"
 
-    return render_template("vouchers.html", vouchers=vouchers)
+    return render_template(template, vouchers=vouchers)

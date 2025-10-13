@@ -119,12 +119,13 @@
       {{ form.amount.label(class="form-label") }}
       {{
         form.amount(
-          class="form-control" + (' is-invalid' if form.amount.errors else ''),
+          class="form-control text-end" + (' is-invalid' if form.amount.errors else ''),
           type="text",
           required=True,
           placeholder="0.00",
           onfocus="stripFormat(this)",
-          onblur="applyFormat(this, 15, 2)"
+          onblur="applyFormat(this, 15, 2)",
+          maxlength="9"
         )
       }}
       {% for err in form.amount.errors %}

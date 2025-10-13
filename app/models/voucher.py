@@ -17,6 +17,7 @@ class Voucher(db.Model):
     payee = db.Column(db.String(120), nullable=False)
     amount = db.Column(db.Numeric(15, 2), nullable=False)
     particulars = db.Column(db.Text, nullable=False)
+    dv_number = db.Column(db.String(10), unique=True)
 
     date_received = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 

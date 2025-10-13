@@ -108,3 +108,14 @@ class RemarksForm(FlaskForm):
             Length(max=2000, message="Particulars too long (max 2000 chars)."),
         ],
     )
+
+
+class DVNumberForm(FlaskForm):
+    fund_cluster = StringField(
+        "Fund",
+        validators=[InputRequired(), Length(min=3, max=3), Regexp(r"^\d{3}$", message="Must be a 3-digit number")],
+    )
+    serial_number = StringField(
+        "Serial Number",
+        validators=[InputRequired(), Length(min=5, max=5), Regexp(r"^\d{5}$", message="Must be a 5-digit number")],
+    )
