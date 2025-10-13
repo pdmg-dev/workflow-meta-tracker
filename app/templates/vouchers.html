@@ -17,8 +17,8 @@
       <div class="card">
         <h6 class="card-header">All Vouchers</h6>
 
-        <div class="d-flex justify-content-between">
-          <div class="d-flex justify-content-left gap-2 ps-3">
+        <div class="d-flex justify-content-between px-3">
+          <div class="d-flex justify-content-left gap-2">
             <button
               class="btn btn-primary"
               hx-post="{{ url_for('voucher.bulk_update_status') }}"
@@ -29,7 +29,7 @@
             </button>
           </div>
 
-          <div class="d-flex justify-content-right gap-2 pe-3">
+          <div class="d-flex justify-content-right gap-2">
             <div class="position-relative">
               <input type="text" id="voucher-search" class="form-control" placeholder="Search..." />
             </div>

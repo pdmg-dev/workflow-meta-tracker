@@ -60,7 +60,7 @@
             </div>
           </td>
 
-          <td class="dots">
+          <td class="kebab-menu">
             <div class="dropdown">
               <i class="bi bi-three-dots-vertical" role="button" data-bs-toggle="dropdown" aria-expanded="false"></i>
               <ul class="dropdown-menu dropdown-menu-end">
@@ -76,7 +76,7 @@
                     hx-target="#modal-container"
                     hx-swap="innerHTML"
                   >
-                    Mark as Returned
+                    Return
                   </a>
                 </li>
                 <li>
@@ -86,12 +86,7 @@
                     hx-target="#voucher-details-preview"
                     hx-swap="innerHTML"
                   >
-                    View Status History
-                  </a>
-                </li>
-                <li>
-                  <a class="dropdown-item" hx-target="#voucher-details-preview" hx-swap="innerHTML">
-                    View More Details
+                    View History
                   </a>
                 </li>
               </ul>
@@ -186,7 +181,7 @@
     outline: none;
   }
 
-  .dots {
+  .kebab-menu {
     position: relative;
     overflow: visible;
   }
