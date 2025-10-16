@@ -1,0 +1,46 @@
+{# app/templates/auth/forms/login.html #}
+<form method="post">
+  {{ form.hidden_tag() }}
+
+  {# Username #}
+  <div class="form-floating mb-3">
+    {{
+      form.username(
+        class="form-control" + ('is-invalid' if form.username.errors else ''),
+        placeholder="Username",
+        autocomplete="username",
+        autofocus=True,
+        required=True
+      )
+    }}
+    {{ form.username.label }}
+    {% for error in form.username.errors %}
+      <div class="invalid-feedback">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  {# Password #}
+  <div class="form-floating mb-3">
+    {{
+      form.password(
+          class="form-control" + ('is-invalid' if form.password.errors else ''),
+          type="password",
+          placeholder="Password",
+          autocomplete="current-password",
+          required=True
+      )
+    }}
+    {{ form.password.label }}
+    {% for error in form.password.errors %}
+      <div class="invalid-feedback">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  {# Remember Me #}
+  <div class="form-check mb-3">
+    {{ form.remember(class="form-check-input", id="remember") }}
+    {{ form.remember.label.text }}
+  </div>
+
+  <div class="d-grid">{{ form.submit(class="btn btn-primary") }}</div>
+</form>

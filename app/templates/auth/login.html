@@ -1,55 +1,13 @@
+{# app/templates/auth/login.html #}
 {% extends 'base.html' %}
+
 {% block content %}
-  <div class="row justify-content-center">
-    <div class="col-md-4">
-      <div class="card mt-5">
+  <div class="row d-flex justify-content-center">
+    <div class="col-sm-3" style="width: 400px;">
+      <div class="card">
         <div class="card-body">
-          <h4 class="card-title text-center mb-4 mt-4 text-primary">
-            <strong>Login</strong>
-          </h4>
-          <form method="post">
-            {{ form.hidden_tag() }}
-
-            <div class="form-floating mb-3">
-              {{
-                form.username(
-                  class="form-control" + (' is-invalid' if form.username.errors else ''),
-                  placeholder="Username",
-                  autofocus=True,
-                  autocomplete="username"
-                )
-              }}
-              {{ form.username.label }}
-              {% for err in form.username.errors %}
-                <div class="invalid-feedback">{{ err }}</div>
-              {% endfor %}
-            </div>
-
-            <!-- Password -->
-            <div class="form-floating mb-3">
-              {{
-                form.password(
-                    class="form-control" + (' is-invalid' if form.password.errors else ''),
-                    type="password",
-                    placeholder="Password",
-                    autocomplete="current-password",
-                    required=True
-                )
-              }}
-              {{ form.password.label }}
-              {% for err in form.password.errors %}
-                <div class="invalid-feedback">{{ err }}</div>
-              {% endfor %}
-            </div>
-
-            <!-- Remember Me -->
-            <div class="form-check mb-4">
-              {{ form.remember(class="form-check-input", id="remember") }}
-              <label class="form-check-label" for="remember">{{ form.remember.label.text }}</label>
-            </div>
-
-            <div class="d-grid">{{ form.submit(class="btn btn-primary") }}</div>
-          </form>
+          <h4 class="card-title text-center fw-bold my-3">Login</h4>
+          {% include 'auth/forms/login.html' %}
         </div>
       </div>
     </div>

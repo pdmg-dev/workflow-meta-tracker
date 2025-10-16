@@ -1,8 +1,9 @@
 # app/blueprints/auth/views.py
+from datetime import timedelta
+
 from flask import flash, redirect, render_template, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
-from app.extensions import db
 from app.models.user import User
 
 from . import auth_bp
@@ -11,15 +12,15 @@ from .forms import LoginForm
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-    if current_user.is_authenticated:
+    if current_user.is_authenticated and current_user.is_active:
         flash("You are already logged in.", "info")
         return redirect(url_for("tracker.dashboard"))
 
     form = LoginForm()
     if form.validate_on_submit():
-        user = db.session.query(User).filter_by(username=form.username.data).first()
+        user = User.query.filter_by(username=form.username.data).first()
         if user and user.check_password(form.password.data):
-            login_user(user)
+            login_user(user, remember=form.remember.data, duration=timedelta(days=7))
             flash(f"Welcome back, {user.full_name}!", "success")
             return redirect(url_for("tracker.dashboard"))
         flash("Invalid username or password.", "danger")

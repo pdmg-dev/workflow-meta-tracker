@@ -22,5 +22,5 @@ class LoginForm(FlaskForm):
         render_kw={"placeholder": "Password", "autocomplete": "current-password"},
     )
 
-    remember = BooleanField("Remember me")
+    remember = BooleanField("Remember Me")
     submit = SubmitField("Login")
