@@ -1,0 +1,48 @@
+<div class="row g-3">
+  <div class="col-3 d-flex">
+    <div class="card">
+      <h4 class="card-header">
+        <i class="file-earmark bi bi-file-earmark"></i>
+      </h4>
+      <div class="card-body">
+        <h6>Received</h6>
+        <div class="d-flex align-item-center">
+          <h6 class="count me-1">{{ voucher_status["received"].count() }}</h6>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-3 d-flex">
+    <div class="card">
+      <h4 class="card-header">
+        <i class="file-earmark bi bi-file-earmark"></i>
+      </h4>
+      <div class="card-body">
+        <h6>Checked</h6>
+        <h6 class="count">{{ voucher_status["checked"].count() }}</h6>
+      </div>
+    </div>
+  </div>
+  <div class="col-3 d-flex">
+    <div class="card">
+      <h4 class="card-header">
+        <i class="file-earmark bi bi-file-earmark"></i>
+      </h4>
+      <div class="card-body">
+        <h6>Sorted</h6>
+        <h6 class="count">{{ voucher_status["sorted"].count() }}</h6>
+      </div>
+    </div>
+  </div>
+  <div class="col-3 d-flex">
+    <div class="card">
+      <h4 class="card-header">
+        <i class="file-earmark bi bi-file-earmark"></i>
+      </h4>
+      <div class="card-body">
+        <h6>Approved</h6>
+        <h6 class="count">{{ voucher_status["approved"].count() }}</h6>
+      </div>
+    </div>
+  </div>
+</div>

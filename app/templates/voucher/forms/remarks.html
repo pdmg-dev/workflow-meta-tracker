@@ -1,8 +1,13 @@
 {# app/templates/voucher/forms/remarks.html #}
 {% extends 'partials/_modal.html' %}
 {% block modal_body %}
-  <form class="d-flex flex-column gap-2 h-100">
-    
+  <form
+    class="d-flex flex-column gap-2 h-100"
+    method="post"
+    hx-post="{{ url_for('voucher.mark_as_returned', voucher_id=voucher.id) }}"
+    hx-swap="none"
+    hx-trigger="submit"
+  >
     <div class="row h-100">
       <div class="col-12 d-flex flex-column flex-grow-1">
         {{ form.remarks.label(class="form-label text-muted") }}

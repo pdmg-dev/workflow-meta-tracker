@@ -11,6 +11,7 @@ body {
   padding: 0.5rem 1rem 1rem 1rem;
   background-color: #f1f1f1;
   font-family: "Mona Sans", sans-serif;
+  overflow: hidden;
 }
 
 main {

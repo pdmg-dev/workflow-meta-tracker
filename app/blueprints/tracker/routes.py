@@ -1,7 +1,10 @@
 # app/blueprints/dashboard/views.py
-from flask import redirect, render_template, request, url_for
-from flask_login import current_user, login_required
 
+from flask import jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+from sqlalchemy import func
+
+from app.extensions import db
 from app.models.voucher import Voucher, VoucherStatus
 
 from . import tracker_bp
@@ -58,7 +61,10 @@ def dashboard():
     }
 
     return render_template(
-        "dashboard.html", all_vouchers=Voucher.query, voucher_status=voucher_status, vouchers=vouchers
+        "dashboard.html",
+        all_vouchers=Voucher.query,
+        voucher_status=voucher_status,
+        vouchers=vouchers,
     )
 
 
@@ -89,3 +95,14 @@ def view_vouchers():
         template = "partials/vouchers_content.html"
 
     return render_template(template, vouchers=vouchers)
+
+
+@tracker_bp.route("/chart-data")
+@login_required
+def chart_data():
+
+    status_counts = (
+        db.session.query(VoucherStatus.code, func.count(Voucher.id)).join(Voucher).group_by(VoucherStatus.code).all()
+    )
+
+    return jsonify(dict(status_counts))

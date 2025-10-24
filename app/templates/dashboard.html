@@ -12,60 +12,13 @@
 
     <div class="fragments">
       <div class="left-panel">
-        <div class="row g-3">
-          <div class="col-3 d-flex">
-            <div class="card">
-              <h4 class="card-header">
-                <i class="file-earmark bi bi-file-earmark"></i>
-              </h4>
-              <div class="card-body">
-                <h6>Received</h6>
-                <div class="d-flex align-item-center">
-                  <h6 class="count me-1">{{ voucher_status["received"].count() }}</h6>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-3 d-flex">
-            <div class="card">
-              <h4 class="card-header">
-                <i class="file-earmark bi bi-file-earmark"></i>
-              </h4>
-              <div class="card-body">
-                <h6>Checked</h6>
-                <h6 class="count">{{ voucher_status["checked"].count() }}</h6>
-              </div>
-            </div>
-          </div>
-          <div class="col-3 d-flex">
-            <div class="card">
-              <h4 class="card-header">
-                <i class="file-earmark bi bi-file-earmark"></i>
-              </h4>
-              <div class="card-body">
-                <h6>Sorted</h6>
-                <h6 class="count">{{ voucher_status["sorted"].count() }}</h6>
-              </div>
-            </div>
-          </div>
-          <div class="col-3 d-flex">
-            <div class="card">
-              <h4 class="card-header">
-                <i class="file-earmark bi bi-file-earmark"></i>
-              </h4>
-              <div class="card-body">
-                <h6>Approved</h6>
-                <h6 class="count">{{ voucher_status["approved"].count() }}</h6>
-              </div>
-            </div>
-          </div>
-        </div>
+        {% include 'dashboard/summary.html' %}
         <div class="card">
           <h6 class="card-header">Recent Vouchers</h6>
           <div class="d-flex justify-content-between">
             <div class="d-flex justify-content-left gap-2 ps-3">
               <button
-                class="btn btn-primary"
+                class="btn btn-primary btn-sm"
                 hx-post="{{ url_for('voucher.bulk_update_status') }}"
                 hx-target="#table-container"
                 hx-swap="innerHTML"
@@ -74,38 +27,10 @@
                 <i class="bi bi-arrow-up-circle"></i>
                 Update Status
               </button>
-              {% if 'admin' in current_user.roles | map(attribute='code') | list %}
-                <button
-                  class="btn btn-danger"
-                  hx-post="{{ url_for('voucher.bulk_update_status', target='returned') }}"
-                  hx-target="#table-container"
-                  hx-swap="innerHTML"
-                  hx-include="#update-status-form"
-                >
-                  Mark as Returned
-                </button>
-              {% endif %}
             </div>
             <div class="d-flex justify-content-right gap-2 pe-3">
               <div class="position-relative">
-                <input type="text" id="voucher-search" class="form-control" placeholder="Search..." />
-              </div>
-
-              <div class="dropdown">
-                <button
-                  class="btn btn-outline-secondary dropdown-toggle"
-                  type="button"
-                  id="dropdownMenuButton"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  Sort by
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
-                  <li><a class="dropdown-item" href="#">Payee</a></li>
-                  <li><a class="dropdown-item" href="#">Amount</a></li>
-                  <li><a class="dropdown-item" href="#">Origin</a></li>
-                </ul>
+                <input type="text" id="voucher-search" class="form-control form-control-sm" placeholder="Search..." />
               </div>
             </div>
           </div>
@@ -116,22 +41,48 @@
       </div>
 
       <div class="right-panel">
-        <div class="card">
-          <h6 class="card-header">Voucher Compliance</h6>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-4">Expired</div>
-              <div class="col-4">Incomplete</div>
-              <div class="col-4">Invalid</div>
-            </div>
-            <div class="row">
-              <div class="col-6">
-                <h3 class="d-inline">{{ voucher_status["approved"].count() }}</h3>
-                <span class="fr-pend">Released Vouchers</span>
+        <div class="row g-3">
+          <div class="col-6 d-flex">
+            <div class="card">
+              <h6 class="card-header">Voucher Compliance</h6>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-4">Expired</div>
+                  <div class="col-4">Incomplete</div>
+                  <div class="col-4">Invalid</div>
+                </div>
+                <div class="row">
+                  <div class="col-6">
+                    <h3 class="d-inline">{{ voucher_status["approved"].count() }}</h3>
+                    <span class="fr-pend">Released Vouchers</span>
+                  </div>
+                  <div class="col-6">
+                    <h3 class="d-inline">{{ voucher_status["pending"] }}</h3>
+                    <span class="fr-pend">Pending Vouchers</span>
+                  </div>
+                </div>
               </div>
-              <div class="col-6">
-                <h3 class="d-inline">{{ voucher_status["pending"] }}</h3>
-                <span class="fr-pend">Pending Vouchers</span>
+            </div>
+          </div>
+          <div class="col-6 d-flex">
+            <div class="card">
+              <h6 class="card-header">Voucher Compliance</h6>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-4">Expired</div>
+                  <div class="col-4">Incomplete</div>
+                  <div class="col-4">Invalid</div>
+                </div>
+                <div class="row">
+                  <div class="col-6">
+                    <h3 class="d-inline">{{ voucher_status["approved"].count() }}</h3>
+                    <span class="fr-pend">Released Vouchers</span>
+                  </div>
+                  <div class="col-6">
+                    <h3 class="d-inline">{{ voucher_status["pending"] }}</h3>
+                    <span class="fr-pend">Pending Vouchers</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -139,7 +90,9 @@
 
         <div class="card" id="particulars">
           <h6 class="card-header text-muted"></h6>
-          <div class="card-body" hx-swap="innerHTML"></div>
+          <div class="card-body">
+            <canvas id="statusChart" height="200"></canvas>
+          </div>
         </div>
       </div>
     </div>
@@ -150,7 +103,7 @@
   <style>
     .fragments {
       display: grid;
-      grid-template-columns: 4fr 400px;
+      grid-template-columns: 3fr 2fr;
       gap: 1rem;
       min-height: 0;
       overflow: hidden;
@@ -165,7 +118,7 @@
 
     .right-panel {
       display: grid;
-      grid-template-rows: 3fr 2.5fr;
+      grid-template-rows: 2fr 3fr;
       gap: 1rem;
       min-height: 0;
     }
@@ -182,5 +135,63 @@
     .file-earmark {
       color: #6c757d;
     }
+
+    /* #Global - Table container with sticky header and scrollable body */
+    .table-container {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr); /* Header + Scrollable Table */
+      background-color: white;
+      overflow: hidden;
+      font-size: small;
+    }
+
+    .scroll-area {
+      overflow-y: auto;
+      min-height: 0;
+      flex-grow: 1;
+      overflow-x: hidden;
+      scrollbar-width: none;
+    }
+
+    .scroll-area::-webkit-scrollbar {
+      display: none;
+      border-radius: inherit;
+      overflow: hidden;
+    }
   </style>
+{% endblock %}
+
+{% block script %}
+  <script>
+    fetch("/chart-data")
+      .then((response) => response.json())
+      .then((data) => {
+        const labels = Object.keys(data);
+        const values = Object.values(data);
+
+        new Chart(document.getElementById("statusChart"), {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Voucher Status Count",
+                data: values,
+                backgroundColor: "rgba(54, 162, 235, 0.5)",
+                borderColor: "rgba(54, 162, 235, 1)",
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+      });
+  </script>
 {% endblock %}

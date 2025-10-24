@@ -1,7 +1,7 @@
 # app/blueprints/vouchers/routes.py
 from zoneinfo import ZoneInfo
 
-from flask import flash, jsonify, render_template, request
+from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app.blueprints.voucher.services import create_voucher, get_todays_vouchers, update_voucher
@@ -158,12 +158,64 @@ def bulk_update_status():
     return jsonify(payload)
 
 
-@voucher_bp.route("/voucher/<int:voucher_id>/return")
+@voucher_bp.route("/voucher/<int:voucher_id>/return", methods=["GET", "POST"])
 @login_required
 def mark_as_returned(voucher_id):
     form = RemarksForm()
-    voucher = Voucher.query.get(voucher_id)
-    return render_template("voucher/forms/remarks.html", modal_title="Mark as Returned", voucher=voucher, form=form)
+    voucher = Voucher.query.get_or_404(voucher_id)
+
+    if request.method == "POST" and form.validate_on_submit():
+        user_role_ids = {r.id for r in current_user.roles}
+        allowed_transitions = (
+            db.session.query(VoucherStatusTransition)
+            .join(VoucherStatusTransition.allowed_roles)
+            .filter(Role.id.in_(user_role_ids))
+            .all()
+        )
+
+        next_t = next(
+            (
+                t
+                for t in allowed_transitions
+                if t.from_status_id == voucher.status_id and t.to_status.code == "returned"
+            ),
+            None,
+        )
+
+        if not next_t:
+            return render_template(
+                "voucher/forms/remarks.html", voucher=voucher, form=form, modal_title="Mark as Returned"
+            )
+
+        voucher.status = next_t.to_status
+        voucher.updated_by_id = current_user.id
+
+        history = VoucherStatusHistory(
+            voucher=voucher, status=next_t.to_status, updated_by_id=current_user.id, remarks=form.remarks.data
+        )
+
+        db.session.add(voucher)
+        db.session.add(history)
+        db.session.commit()
+
+        if request.headers.get("HX-Request"):
+            return jsonify(
+                {
+                    "updated": [
+                        {
+                            "id": voucher.id,
+                            "status": voucher.status.name,
+                            "code": voucher.status.code,
+                            "updated_at": voucher.updated_at.strftime("%b %d, %Y %I:%M %p"),
+                        }
+                    ]
+                }
+            )
+
+        flash("Voucher marked as returned.", "success")
+        return redirect(url_for("voucher_bp.view_voucher", voucher_id=voucher.id))
+
+    return render_template("voucher/forms/remarks.html", voucher=voucher, form=form, modal_title="Mark as Returned")
 
 
 @voucher_bp.route("/voucher/serial")
