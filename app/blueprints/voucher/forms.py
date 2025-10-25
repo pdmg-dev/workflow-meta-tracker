@@ -108,6 +108,7 @@ class RemarksForm(FlaskForm):
             Length(max=2000, message="Particulars too long (max 2000 chars)."),
         ],
     )
+    submit = SubmitField("Save")
 
 
 class DVNumberForm(FlaskForm):

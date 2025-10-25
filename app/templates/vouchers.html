@@ -32,6 +32,13 @@
           <div class="d-flex justify-content-right gap-2">
             <div class="position-relative">
               <input type="text" id="voucher-search" class="form-control" placeholder="Search..." />
+              <button
+                id="clear-search"
+                class="clear-search btn btn-sm position-absolute end-0 top-0 mt-1 me-1"
+                type="button"
+              >
+                <i class="bi bi-x-circle"></i>
+              </button>
             </div>
 
             <div class="dropdown">
@@ -42,12 +49,14 @@
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
               >
-                Sort by
+                Filter by
               </button>
               <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
-                <li><a class="dropdown-item" href="#">Payee</a></li>
-                <li><a class="dropdown-item" href="#">Amount</a></li>
-                <li><a class="dropdown-item" href="#">Origin</a></li>
+                <li><a class="dropdown-item" href="#">Status</a></li>
+                <li><a class="dropdown-item" href="#">Received</a></li>
+                <li><a class="dropdown-item" href="#">Checked</a></li>
+                <li><a class="dropdown-item" href="#">Sorted</a></li>
+                <li><a class="dropdown-item" href="#">Approved</a></li>
               </ul>
             </div>
           </div>
@@ -82,6 +91,7 @@
       ensureVoucherRowIds();
       initializeVoucherTable();
       bindVoucherSearchInput();
+      initVoucherSorting();
     });
 
     /* ------------------------------------------------
@@ -142,6 +152,7 @@
       if (!window._voucherJsonHandlerBound) {
         window._voucherJsonHandlerBound = true;
         document.body.addEventListener("htmx:afterRequest", handleVoucherJsonResponse);
+        document.body.addEventListener("htmx:afterOnLoad", handleVoucherJsonResponse);
       }
     }
 
@@ -215,8 +226,8 @@
       if (!data.updated || !Array.isArray(data.updated)) return;
 
       data.updated.forEach(({ id, status, code, updated_at }) => {
-        const badge = document.querySelector(`#voucher-${id} .status-col .badge`);
-        const updatedAt = document.querySelector(`#voucher-${id} .status-col .updated_at`);
+        const badge = document.querySelector(`.voucher-row[data-voucher-id="${id}"] .status-col .badge`);
+        const updatedAt = document.querySelector(`.voucher-row[data-voucher-id="${id}"] .status-col .updated_at`);
         if (!badge) return;
 
         badge.textContent = status;
@@ -259,6 +270,101 @@
       });
     }
 
+    // Close modal
+    function handleReturnResponse(event) {
+      const detail = event.detail;
+      if (!detail.xhr) return;
+
+      // only handle successful JSON responses
+      if (detail.xhr.status === 200 && detail.xhr.getResponseHeader("content-type").includes("application/json")) {
+        // Close the Bootstrap modal
+        const modalEl = document.getElementById("dynamicModal");
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+
+        // Optional: update your UI (badge, row, etc.)
+        const response = JSON.parse(detail.xhr.responseText);
+        const updated = response.updated?.[0];
+        if (updated) {
+          const row = document.querySelector(`[data-voucher-id="${updated.id}"]`);
+          if (row) {
+            row.querySelector(".status-cell").textContent = updated.status;
+            row.querySelector(".updated-at-cell").textContent = updated.updated_at;
+          }
+        }
+      }
+    }
+
+    /* ------------------------------------------------
+     * Table Sorting (Client-Side)
+     * ------------------------------------------------ */
+    function initVoucherSorting() {
+      const headers = document.querySelectorAll(".voucher-table th.sortable");
+      headers.forEach((th) => {
+        th.addEventListener("click", () => handleVoucherSort(th));
+      });
+
+      localStorage.setItem("voucherSearchQuery", query);
+    }
+
+    function handleVoucherSort(th) {
+      const tableBody = th.closest("table").querySelector("tbody");
+      const rows = Array.from(tableBody.querySelectorAll("tr.voucher-row"));
+      const sortKey = th.dataset.sort;
+      const currentDir = th.dataset.dir === "asc" ? "desc" : "asc";
+      th.dataset.dir = currentDir;
+
+      // Remove active indicator from others
+      document.querySelectorAll(".voucher-table th.sortable i").forEach((icon) => {
+        icon.classList.replace("opacity-100", "opacity-0");
+      });
+
+      // Update the clicked header's icon direction
+      const icon = th.querySelector("i");
+      if (icon) {
+        icon.classList.replace("opacity-0", "opacity-100");
+        icon.classList.toggle("bi-caret-down-fill", currentDir === "desc");
+        icon.classList.toggle("bi-caret-up-fill", currentDir === "asc");
+      }
+
+      // Helper: extract comparable value from a row
+      const getValue = (row) => {
+        switch (sortKey) {
+          case "amount":
+            return parseFloat(row.querySelector(".amount-col").textContent.replace(/,/g, "")) || 0;
+          case "date":
+            return new Date(row.querySelector(".date-col").textContent.trim()).getTime() || 0;
+          case "status":
+            return row.querySelector(".status-col .badge")?.textContent.trim().toLowerCase() || "";
+          case "type":
+            return row.querySelector(".type")?.textContent.trim().toLowerCase() || "";
+          case "voucher-id":
+            return row.querySelector(".voucher-id")?.textContent.trim().toLowerCase() || "";
+          case "payee":
+            return row.querySelector(".payee-col")?.textContent.trim().toLowerCase() || "";
+          case "origin":
+            return row.querySelector(".origin")?.textContent.trim().toLowerCase() || "";
+          default:
+            return row.textContent.trim().toLowerCase();
+        }
+      };
+
+      // Sort the rows
+      rows.sort((a, b) => {
+        const aVal = getValue(a);
+        const bVal = getValue(b);
+        if (typeof aVal === "number" && typeof bVal === "number") {
+          return currentDir === "asc" ? aVal - bVal : bVal - aVal;
+        }
+        return currentDir === "asc"
+          ? aVal.localeCompare(bVal, undefined, { numeric: true })
+          : bVal.localeCompare(aVal, undefined, { numeric: true });
+      });
+
+      // Reattach in sorted order
+      tableBody.append(...rows);
+    }
+
     /* ------------------------------------------------
      * Handle HTMX Table Swap & Modal Restore
      * ------------------------------------------------ */
@@ -267,6 +373,7 @@
         ensureVoucherRowIds();
         initializeVoucherTable();
         bindVoucherSearchInput();
+        initVoucherSorting();
       }
     });
 
@@ -295,6 +402,13 @@
     document.body.addEventListener("hidden.bs.modal", (event) => {
       event.target.remove(); // remove modal markup after hide
     });
+
+    // Clear search button
+    document.getElementById("clear-search").addEventListener("click", () => {
+      const input = document.getElementById("voucher-search");
+      input.value = "";
+      input.dispatchEvent(new Event("input"));
+    });
   </script>
 {% endblock %}
 
@@ -322,6 +436,16 @@
       to {
         background-color: inherit;
       }
+    }
+
+    .clear-search {
+      background-color: white;
+      outline-color: white;
+      border: none;
+      translate: unset;
+      box-shadow: none;
+      color: #dee2e6;
+      align-items: center;
     }
   </style>
 {% endblock %}

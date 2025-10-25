@@ -39,9 +39,7 @@
                 Voucher is returned by <strong>{{ h.updated_by_user.full_name }}</strong>
               {% endif %}
             </div>
-            {% if h == latest and h.remarks %}
               <div>{{ h.remarks }}</div>
-            {% endif %}
           </div>
         </li>
       {% else %}

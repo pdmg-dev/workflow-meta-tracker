@@ -153,7 +153,19 @@ def bulk_update_status():
 
     db.session.commit()
 
-    payload = {"updated": [{"id": v.id, "status": v.status.name, "code": v.status.code} for v in updated_vouchers]}
+    payload = {
+        "updated": [
+            {
+                "id": v.id,
+                "status": v.status.name,
+                "code": v.status.code,
+                "updated_at": v.updated_at.replace(tzinfo=ZoneInfo("UTC"))
+                .astimezone(ZoneInfo("Asia/Manila"))
+                .strftime("%m-%d %I:%M %p"),
+            }
+            for v in updated_vouchers
+        ]
+    }
 
     return jsonify(payload)
 
@@ -166,6 +178,7 @@ def mark_as_returned(voucher_id):
 
     if request.method == "POST" and form.validate_on_submit():
         user_role_ids = {r.id for r in current_user.roles}
+
         allowed_transitions = (
             db.session.query(VoucherStatusTransition)
             .join(VoucherStatusTransition.allowed_roles)
@@ -173,7 +186,7 @@ def mark_as_returned(voucher_id):
             .all()
         )
 
-        next_t = next(
+        next_transition = next(
             (
                 t
                 for t in allowed_transitions
@@ -182,23 +195,29 @@ def mark_as_returned(voucher_id):
             None,
         )
 
-        if not next_t:
+        if not next_transition:
             return render_template(
-                "voucher/forms/remarks.html", voucher=voucher, form=form, modal_title="Mark as Returned"
+                "voucher/forms/remarks.html",
+                voucher=voucher,
+                form=form,
+                modal_title="Mark as Returned",
             )
 
-        voucher.status = next_t.to_status
+        voucher.status = next_transition.to_status
         voucher.updated_by_id = current_user.id
 
         history = VoucherStatusHistory(
-            voucher=voucher, status=next_t.to_status, updated_by_id=current_user.id, remarks=form.remarks.data
+            voucher=voucher,
+            status=next_transition.to_status,
+            updated_by_id=current_user.id,
+            remarks=form.remarks.data,
         )
 
-        db.session.add(voucher)
-        db.session.add(history)
+        db.session.add_all([voucher, history])
         db.session.commit()
 
-        if request.headers.get("HX-Request"):
+        # ✅ Detect HTMX JSON request
+        if request.accept_mimetypes.accept_json:
             return jsonify(
                 {
                     "updated": [
@@ -206,7 +225,9 @@ def mark_as_returned(voucher_id):
                             "id": voucher.id,
                             "status": voucher.status.name,
                             "code": voucher.status.code,
-                            "updated_at": voucher.updated_at.strftime("%b %d, %Y %I:%M %p"),
+                            "updated_at": voucher.updated_at.replace(tzinfo=ZoneInfo("UTC"))
+                            .astimezone(ZoneInfo("Asia/Manila"))
+                            .strftime("%m-%d %I:%M %p"),
                         }
                     ]
                 }
@@ -215,7 +236,13 @@ def mark_as_returned(voucher_id):
         flash("Voucher marked as returned.", "success")
         return redirect(url_for("voucher_bp.view_voucher", voucher_id=voucher.id))
 
-    return render_template("voucher/forms/remarks.html", voucher=voucher, form=form, modal_title="Mark as Returned")
+    # ---- GET request (open modal)
+    return render_template(
+        "voucher/forms/remarks.html",
+        voucher=voucher,
+        form=form,
+        modal_title="Mark as Returned",
+    )
 
 
 @voucher_bp.route("/voucher/serial")

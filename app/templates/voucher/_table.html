@@ -3,25 +3,36 @@
   <table class="voucher-table">
     <thead>
       <tr>
-        <th class="checkbox-col">
-          <input type="checkbox" id="select-all" />
+        <th class="checkbox-col"><input type="checkbox" id="select-all" /></th>
+        <th data-sort="type" class="sortable text-start text-muted">
+          Type <i class="bi bi-caret-down-fill ms-1 opacity-0"></i>
         </th>
-        <th class="type text-start text-muted">Type</th>
-        <th class="voucher-id text-start text-muted">Voucher ID</th>
-        <th class="payee-col text-start text-muted">Payee</th>
-        <th class="amount-col text-end text-muted pe-3">Amount</th>
-        <th class="date-col text-start text-muted">Date Received</th>
-        <th class="origin text-start text-muted">Origin</th>
-        <th class="status-col text-muted">Status</th>
-        <th class="nut-col">
-          <i class="nut-icon bi bi-nut fs-5"></i>
+        <th data-sort="voucher-id" class="sortable text-start text-muted">
+          Voucher ID <i class="bi bi-caret-down-fill ms-1 opacity-0"></i>
         </th>
+        <th data-sort="payee" class="sortable text-start text-muted">
+          Payee <i class="bi bi-caret-down-fill ms-1 opacity-0"></i>
+        </th>
+        <th data-sort="amount" class="sortable text-end text-muted pe-3">
+          Amount <i class="bi bi-caret-down-fill ms-1 opacity-0"></i>
+        </th>
+        <th data-sort="date" class="sortable text-start text-muted">
+          Date Received <i class="bi bi-caret-down-fill ms-1 opacity-0"></i>
+        </th>
+        <th data-sort="origin" class="sortable text-start text-muted">
+          Origin <i class="bi bi-caret-down-fill ms-1 opacity-0"></i>
+        </th>
+        <th data-sort="status" class="sortable text-muted">
+          Status <i class="bi bi-caret-down-fill ms-1 opacity-0"></i>
+        </th>
+        <th class="nut-col"><i class="nut-icon bi bi-nut fs-5"></i></th>
       </tr>
     </thead>
 
     <tbody>
       {% for voucher in vouchers %}
         <tr
+          id="voucher-{{ voucher.id }}"
           class="voucher-row"
           data-voucher-id="{{ voucher.id }}"
           tabindex="0"
@@ -171,7 +182,7 @@
   .voucher-table tbody tr.active-row td,
   .voucher-table tbody tr:focus td {
     font-weight: normal;
-    background-color: #eaeaea; /* light blue background */
+    background-color: #eaeaea; /* light grsy background */
     transition: background-color 0.25s ease-in-out;
     outline: none;
     vertical-align: middle;
@@ -179,6 +190,11 @@
 
   .voucher-row:focus {
     outline: none;
+  }
+
+  .voucher-row:hover:not(.active-row) {
+    background-color: #eaeaea;
+    cursor: pointer;
   }
 
   .kebab-menu {
@@ -198,5 +214,25 @@
 
   .updated_at {
     font-size: xx-small;
+  }
+
+  .sortable {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .sortable i {
+    transition:
+      opacity 0.2s,
+      transform 0.2s;
+  }
+
+  .sortable:hover i.opacity-0 {
+    opacity: 0.3 !important;
+  }
+
+  .sortable[data-dir="asc"] i.bi-caret-up-fill,
+  .sortable[data-dir="desc"] i.bi-caret-down-fill {
+    opacity: 1 !important;
   }
 </style>
