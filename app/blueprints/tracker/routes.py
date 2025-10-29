@@ -71,30 +71,31 @@ def dashboard():
 @tracker_bp.route("/vouchers", methods=["GET"])
 @login_required
 def view_vouchers():
-    # Check if user has the 'encoder' role
+    page = request.args.get("page", 1, type=int)
+    per_page = 15  # adjust as you like
+
     role_map = ["admin", "encoder"]
     is_admin_or_encoder = any(role.code in role_map for role in current_user.roles)
-    if is_admin_or_encoder:
-        vouchers = Voucher.query.all()
-    else:
-        allowed_type_ids = [vt.id for vt in current_user.voucher_types]
-        vouchers = Voucher.query.filter(Voucher.voucher_type_id.in_(allowed_type_ids)).all()
+    query = Voucher.query
 
-    # Sort vouchers by reference number
-    vouchers = sorted(
-        vouchers,
-        key=lambda v: (
-            int(v.reference_number[1:3]),  # year
-            int(v.reference_number[3:5]),  # month
-            int(v.reference_number[5:]),  # sequence
-        ),
-        reverse=True,
-    )
+    if not is_admin_or_encoder:
+        allowed_type_ids = [vt.id for vt in current_user.voucher_types]
+        query = query.filter(Voucher.voucher_type_id.in_(allowed_type_ids))
+
+    # Apply sorting dynamically (if needed)
+    sort_col = request.args.get("sort", "reference_number")
+    sort_dir = request.args.get("dir", "desc")
+    if sort_col and hasattr(Voucher, sort_col):
+        col = getattr(Voucher, sort_col)
+        query = query.order_by(col.desc() if sort_dir == "desc" else col.asc())
+
+    vouchers = query.paginate(page=page, per_page=per_page, error_out=False)
+
     template = "vouchers.html"
     if request.headers.get("HX-Request"):
-        template = "partials/vouchers_content.html"
+        template = "voucher/_table.html"
 
-    return render_template(template, vouchers=vouchers)
+    return render_template(template, vouchers=vouchers.items, pagination=vouchers)
 
 
 @tracker_bp.route("/chart-data")

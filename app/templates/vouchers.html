@@ -51,19 +51,22 @@
               >
                 Filter by
               </button>
-              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
-                <li><a class="dropdown-item" href="#">Status</a></li>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <li><a class="dropdown-item" href="#">All</a></li>
                 <li><a class="dropdown-item" href="#">Received</a></li>
                 <li><a class="dropdown-item" href="#">Checked</a></li>
                 <li><a class="dropdown-item" href="#">Sorted</a></li>
                 <li><a class="dropdown-item" href="#">Approved</a></li>
+                <li><a class="dropdown-item" href="#">Returned</a></li>
               </ul>
             </div>
           </div>
         </div>
 
         <div class="card-body">
-          <div id="table-container" class="table-container scroll-area">{% include 'voucher/_table.html' %}</div>
+          <div id="table-container" class="table-container scroll-area" hx-target="this">
+            {% include 'voucher/_table.html' %}
+          </div>
         </div>
       </div>
 
@@ -92,6 +95,8 @@
       initializeVoucherTable();
       bindVoucherSearchInput();
       initVoucherSorting();
+      initVoucherDropdownFilter();
+      bindClearSearchButton();
     });
 
     /* ------------------------------------------------
@@ -255,18 +260,109 @@
     }
 
     /* ------------------------------------------------
-     * Search Filter
+     * Search Filter (respects dropdown filter)
      * ------------------------------------------------ */
     function bindVoucherSearchInput() {
       const searchInput = document.getElementById("voucher-search");
+      const clearBtn = document.getElementById("clear-search");
       if (!searchInput || searchInput._bound) return;
       searchInput._bound = true;
 
-      searchInput.addEventListener("input", () => {
-        const query = searchInput.value.toLowerCase();
+      const filterRows = () => {
+        const query = searchInput.value.trim().toLowerCase();
+        const activeFilter = localStorage.getItem("voucherDropdownFilter") || "All";
+
         document.querySelectorAll(".voucher-row").forEach((row) => {
-          row.style.display = row.textContent.toLowerCase().includes(query) ? "" : "none";
+          const text = row.textContent.toLowerCase();
+          const statusCell = row.querySelector(".status-col .badge");
+          const statusText = statusCell ? statusCell.textContent.trim() : "";
+
+          const matchesSearch = !query || text.includes(query);
+          const matchesFilter = activeFilter === "All" || statusText === activeFilter;
+
+          // Show if both match
+          row.style.display = matchesSearch && matchesFilter ? "" : "none";
         });
+
+        // Toggle clear button visibility
+        clearBtn.style.visibility = query ? "visible" : "hidden";
+      };
+
+      searchInput.addEventListener("input", filterRows);
+
+      // Clear button: only clears search box, doesn't reload table
+      clearBtn.addEventListener("click", () => {
+        if (!searchInput.value) return; // do nothing if already empty
+        searchInput.value = "";
+        filterRows();
+      });
+
+      // Initialize button hidden
+      clearBtn.style.visibility = "hidden";
+    }
+
+    function initVoucherDropdownFilter() {
+      const button = document.getElementById("dropdownMenuButton");
+      const STORAGE_KEY = "voucherDropdownFilter";
+
+      if (!button) {
+        console.warn("Voucher filter button not found!");
+        return;
+      }
+
+      // Find the menu *linked* to this button
+      const dropdownMenu = document.querySelector(`[aria-labelledby="${button.id}"]`);
+      if (!dropdownMenu) {
+        console.warn("Voucher filter menu not found!");
+        return;
+      }
+
+      // Restore last-used filter if stored
+      const savedFilter = localStorage.getItem(STORAGE_KEY);
+      if (savedFilter) {
+        button.textContent = savedFilter === "All" ? "Filter by" : `Filter: ${savedFilter}`;
+        applyVoucherFilter(savedFilter);
+      }
+
+      // ✅ Attach click listener only to this dropdown menu
+      dropdownMenu.addEventListener("click", (e) => {
+        const item = e.target.closest(".dropdown-item");
+        if (!item) return;
+
+        e.preventDefault(); // prevent link nav
+        e.stopPropagation(); // avoid Bootstrap swallowing it
+
+        const filter = item.textContent.trim();
+        console.log("   Voucher dropdown clicked:", filter);
+
+        // Save + show
+        localStorage.setItem(STORAGE_KEY, filter);
+        button.textContent = filter === "All" ? "Filter by" : `Filter: ${filter}`;
+
+        // Apply filtering
+        applyVoucherFilter(filter);
+
+        // Close the dropdown after click
+        const dropdownInstance = bootstrap.Dropdown.getInstance(button);
+        if (dropdownInstance) {
+          dropdownInstance.hide();
+        }
+      });
+    }
+
+    function applyVoucherFilter(filter) {
+      const rows = document.querySelectorAll(".voucher-row");
+
+      rows.forEach((row) => {
+        const statusCell = row.querySelector(".status-col .badge");
+        const statusText = statusCell ? statusCell.textContent.trim() : "";
+
+        // Show all if filter is "All"
+        if (filter === "All" || statusText === filter) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
       });
     }
 
@@ -300,26 +396,69 @@
      * ------------------------------------------------ */
     function initVoucherSorting() {
       const headers = document.querySelectorAll(".voucher-table th.sortable");
+      if (!headers.length) return;
+
       headers.forEach((th) => {
         th.addEventListener("click", () => handleVoucherSort(th));
       });
 
-      localStorage.setItem("voucherSearchQuery", query);
+      // ✅ Restore saved sort
+      const savedSort = JSON.parse(localStorage.getItem("voucherSortState") || "{}");
+      if (savedSort.key && savedSort.dir) {
+        const targetHeader = Array.from(headers).find((th) => th.dataset.sort === savedSort.key);
+        if (targetHeader) {
+          targetHeader.dataset.dir = savedSort.dir;
+          handleVoucherSort(targetHeader, true); // true = restore mode (no re-toggle)
+        }
+      }
     }
 
-    function handleVoucherSort(th) {
-      const tableBody = th.closest("table").querySelector("tbody");
+    function handleVoucherSort(th, restore = false) {
+      const table = th.closest("table");
+      const tableBody = table.querySelector("tbody");
       const rows = Array.from(tableBody.querySelectorAll("tr.voucher-row"));
       const sortKey = th.dataset.sort;
-      const currentDir = th.dataset.dir === "asc" ? "desc" : "asc";
-      th.dataset.dir = currentDir;
 
-      // Remove active indicator from others
-      document.querySelectorAll(".voucher-table th.sortable i").forEach((icon) => {
-        icon.classList.replace("opacity-100", "opacity-0");
+      // ✅ Save original order (only once)
+      if (!table._originalOrder) {
+        table._originalOrder = rows.map((row) => row);
+      }
+
+      // ✅ Determine direction (3-state: none → asc → desc → none)
+      let currentDir;
+      if (restore) {
+        currentDir = th.dataset.dir || "asc";
+      } else {
+        if (!th.dataset.dir) currentDir = "asc";
+        else if (th.dataset.dir === "asc") currentDir = "desc";
+        else currentDir = "none";
+      }
+
+      // ✅ Clear all other header states
+      table.querySelectorAll("th.sortable").forEach((header) => {
+        if (header !== th) delete header.dataset.dir;
+        const icon = header.querySelector("i");
+        if (icon) icon.classList.replace("opacity-100", "opacity-0");
       });
 
-      // Update the clicked header's icon direction
+      // ✅ If “none” → restore original order
+      if (currentDir === "none") {
+        delete th.dataset.dir;
+        localStorage.removeItem("voucherSortState");
+
+        const icon = th.querySelector("i");
+        if (icon) icon.classList.replace("opacity-100", "opacity-0");
+
+        tableBody.innerHTML = "";
+        tableBody.append(...table._originalOrder);
+        return;
+      }
+
+      // ✅ Update dataset + persist
+      th.dataset.dir = currentDir;
+      localStorage.setItem("voucherSortState", JSON.stringify({ key: sortKey, dir: currentDir }));
+
+      // ✅ Update active icon
       const icon = th.querySelector("i");
       if (icon) {
         icon.classList.replace("opacity-0", "opacity-100");
@@ -327,13 +466,13 @@
         icon.classList.toggle("bi-caret-up-fill", currentDir === "asc");
       }
 
-      // Helper: extract comparable value from a row
+      // ✅ Extract sort value
       const getValue = (row) => {
         switch (sortKey) {
           case "amount":
-            return parseFloat(row.querySelector(".amount-col").textContent.replace(/,/g, "")) || 0;
+            return parseFloat(row.querySelector(".amount-col")?.textContent.replace(/,/g, "")) || 0;
           case "date":
-            return new Date(row.querySelector(".date-col").textContent.trim()).getTime() || 0;
+            return new Date(row.querySelector(".date-col")?.textContent.trim()).getTime() || 0;
           case "status":
             return row.querySelector(".status-col .badge")?.textContent.trim().toLowerCase() || "";
           case "type":
@@ -349,7 +488,7 @@
         }
       };
 
-      // Sort the rows
+      // ✅ Sort rows
       rows.sort((a, b) => {
         const aVal = getValue(a);
         const bVal = getValue(b);
@@ -361,8 +500,26 @@
           : bVal.localeCompare(aVal, undefined, { numeric: true });
       });
 
-      // Reattach in sorted order
+      // ✅ Update table
       tableBody.append(...rows);
+    }
+
+    // Clear search button bind
+
+    function bindClearSearchButton() {
+      const clearBtn = document.getElementById("clear-search");
+      const searchInput = document.getElementById("voucher-search");
+      if (!clearBtn || clearBtn._bound) return;
+      clearBtn._bound = true;
+
+      clearBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (!searchInput) return;
+        searchInput.value = "";
+        // Fire both input + search to cover both behaviors
+        searchInput.dispatchEvent(new Event("input"));
+        searchInput.dispatchEvent(new Event("search"));
+      });
     }
 
     /* ------------------------------------------------
@@ -374,6 +531,8 @@
         initializeVoucherTable();
         bindVoucherSearchInput();
         initVoucherSorting();
+        initVoucherDropdownFilter();
+        bindClearSearchButton();
       }
     });
 
@@ -401,13 +560,6 @@
     // Optional: clean up modal DOM after it's closed
     document.body.addEventListener("hidden.bs.modal", (event) => {
       event.target.remove(); // remove modal markup after hide
-    });
-
-    // Clear search button
-    document.getElementById("clear-search").addEventListener("click", () => {
-      const input = document.getElementById("voucher-search");
-      input.value = "";
-      input.dispatchEvent(new Event("input"));
     });
   </script>
 {% endblock %}
@@ -446,6 +598,11 @@
       box-shadow: none;
       color: #dee2e6;
       align-items: center;
+    }
+
+    .clear-search.disabled {
+      opacity: 0.3;
+      pointer-events: none;
     }
   </style>
 {% endblock %}
