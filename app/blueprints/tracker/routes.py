@@ -72,7 +72,7 @@ def dashboard():
 @login_required
 def view_vouchers():
     page = request.args.get("page", 1, type=int)
-    per_page = 15  # adjust as you like
+    per_page = 20  # adjust as you like
 
     role_map = ["admin", "encoder"]
     is_admin_or_encoder = any(role.code in role_map for role in current_user.roles)
