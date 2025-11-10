@@ -140,126 +140,128 @@
   {% endif %}
 </form>
 
-<style>
-  .voucher-row {
-    cursor: pointer;
-  }
+{% block style %}
+  <style>
+    .voucher-row {
+      cursor: pointer;
+    }
 
-  .voucher-row .dots {
-    pointer-events: auto;
-  }
+    .voucher-row .dots {
+      pointer-events: auto;
+    }
 
-  .voucher-table {
-    width: 100%;
-    border-collapse: collapse;
-    max-height: 100%;
-  }
+    .voucher-table {
+      width: 100%;
+      border-collapse: collapse;
+      max-height: 100%;
+    }
 
-  /* Narrow checkbox column */
-  .voucher-table th.checkbox-col,
-  .voucher-table td.checkbox-col {
-    width: 1rem;
-    padding-left: 0;
-  }
+    /* Narrow checkbox column */
+    .voucher-table th.checkbox-col,
+    .voucher-table td.checkbox-col {
+      width: 1rem;
+      padding-left: 0;
+    }
 
-  .voucher-table th,
-  .voucher-table td {
-    padding: 0.5rem; /* uniform padding */
-    vertical-align: middle;
-    overflow-wrap: break-word; /* wrap long words */
-    word-break: break-word;
-    white-space: normal; /* allow line breaks */
-    border-bottom: 1px solid #dee2e6; /* subtle row separation */
-  }
+    .voucher-table th,
+    .voucher-table td {
+      padding: 0.5rem; /* uniform padding */
+      vertical-align: middle;
+      overflow-wrap: break-word; /* wrap long words */
+      word-break: break-word;
+      white-space: normal; /* allow line breaks */
+      border-bottom: 1px solid #dee2e6; /* subtle row separation */
+    }
 
-  .voucher-table th.payee-col,
-  .voucher-table td.payee-col {
-    max-width: 200px; /* Adjust width as needed */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+    .voucher-table th.payee-col,
+    .voucher-table td.payee-col {
+      max-width: 200px; /* Adjust width as needed */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
-  .voucher-table thead th {
-    position: sticky;
-    top: 0;
-    background-color: #f8f9fa;
-    z-index: 2;
-    background-color: white;
-    font-weight: normal;
-    text-align: center; /* center header text for better alignment */
-  }
+    .voucher-table thead th {
+      position: sticky;
+      top: 0;
+      background-color: #f8f9fa;
+      z-index: 2;
+      background-color: white;
+      font-weight: normal;
+      text-align: center; /* center header text for better alignment */
+    }
 
-  .voucher-table tbody td {
-    text-align: center; /* default center alignment */
-    vertical-align: middle;
-  }
+    .voucher-table tbody td {
+      text-align: center; /* default center alignment */
+      vertical-align: middle;
+    }
 
-  .voucher-table td {
-    overflow: visible;
-    white-space: nowrap;
-  }
+    .voucher-table td {
+      overflow: visible;
+      white-space: nowrap;
+    }
 
-  input[type="checkbox"] {
-    accent-color: #0d6efd; /* Bootstrap 5 primary blue */
-    margin: 0;
-    vertical-align: middle;
-  }
+    input[type="checkbox"] {
+      accent-color: #0d6efd; /* Bootstrap 5 primary blue */
+      margin: 0;
+      vertical-align: middle;
+    }
 
-  .voucher-table tbody tr.active-row td,
-  .voucher-table tbody tr:focus td {
-    font-weight: normal;
-    background-color: #eaeaea; /* light grsy background */
-    transition: background-color 0.25s ease-in-out;
-    outline: none;
-    vertical-align: middle;
-  }
+    .voucher-table tbody tr.active-row td,
+    .voucher-table tbody tr:focus td {
+      font-weight: normal;
+      background-color: #eaeaea; /* light grsy background */
+      transition: background-color 0.25s ease-in-out;
+      outline: none;
+      vertical-align: middle;
+    }
 
-  .voucher-row:focus {
-    outline: none;
-  }
+    .voucher-row:focus {
+      outline: none;
+    }
 
-  .voucher-row:hover:not(.active-row) {
-    background-color: #eaeaea;
-    cursor: pointer;
-  }
+    .voucher-row:hover:not(.active-row) {
+      background-color: #eaeaea;
+      cursor: pointer;
+    }
 
-  .kebab-menu {
-    position: relative;
-    overflow: visible;
-  }
+    .kebab-menu {
+      position: relative;
+      overflow: visible;
+    }
 
-  .dropdown-menu {
-    z-index: 1000;
-  }
+    .dropdown-menu {
+      z-index: 1000;
+    }
 
-  .nut-icon {
-    display: inline-block;
-    transform: rotate(90deg);
-    color: #595c5f;
-  }
+    .nut-icon {
+      display: inline-block;
+      transform: rotate(90deg);
+      color: #595c5f;
+    }
 
-  .updated_at {
-    font-size: xx-small;
-  }
+    .updated_at {
+      font-size: xx-small;
+    }
 
-  .sortable {
-    cursor: pointer;
-    user-select: none;
-  }
+    .sortable {
+      cursor: pointer;
+      user-select: none;
+    }
 
-  .sortable i {
-    transition:
-      opacity 0.2s,
-      transform 0.2s;
-  }
+    .sortable i {
+      transition:
+        opacity 0.2s,
+        transform 0.2s;
+    }
 
-  .sortable:hover i.opacity-0 {
-    opacity: 0.3 !important;
-  }
+    .sortable:hover i.opacity-0 {
+      opacity: 0.3 !important;
+    }
 
-  .sortable[data-dir="asc"] i.bi-caret-up-fill,
-  .sortable[data-dir="desc"] i.bi-caret-down-fill {
-    opacity: 1 !important;
-  }
-</style>
+    .sortable[data-dir="asc"] i.bi-caret-up-fill,
+    .sortable[data-dir="desc"] i.bi-caret-down-fill {
+      opacity: 1 !important;
+    }
+  </style>
+{% endblock %}

@@ -216,7 +216,7 @@ def mark_as_returned(voucher_id):
         db.session.add_all([voucher, history])
         db.session.commit()
 
-        # ✅ Detect HTMX JSON request
+        # Detect HTMX JSON request
         if request.accept_mimetypes.accept_json:
             return jsonify(
                 {

@@ -1,6 +1,7 @@
 # app/blueprints/users/models.py
 
 from flask_login import UserMixin
+from sqlalchemy import func
 
 from app.extensions import bcrypt, db
 
@@ -24,6 +25,7 @@ class User(db.Model, UserMixin):
     full_name = db.Column(db.String(100), nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
     roles = db.relationship("Role", secondary=user_roles, back_populates="users")
     voucher_types = db.relationship("VoucherType", secondary=user_voucher_types, back_populates="users")

@@ -1,0 +1,149 @@
+<!--app/templates/admin/users.html-->
+{% extends 'base.html' %}
+{% block title %}Users{% endblock %}
+{% block content %}
+  <div class="content-container">
+    <div class="content-header">
+      <h4 class="content-title">User Management</h4>
+      {% set role_codes = current_user.roles | map(attribute='code') | list %}
+      <a href="{{ url_for('voucher.new_voucher') }}" class="btn btn-primary">
+        <i class="plus-icon bi bi-plus me-1"></i>Add User
+      </a>
+    </div>
+
+    <div class="fragments">
+      <div class="card">
+        <h6 class="card-header">Users</h6>
+        <div class="card-body">
+          <table class="user-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Roles</th>
+                <th>Assigned Vouchers</th>
+                <th>Created</th>
+                <th class="nut-col"><i class="nut-icon bi bi-nut fs-5"></i></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in users %}
+                <tr class="user-row">
+                  <td>{{ user.full_name }}</td>
+                  <td>{{ user.username }}</td>
+                  <td>{{ user.roles | map(attribute='name') | join(', ') }}</td>
+                  <td>
+                    {% if 'Admin' in user.roles | map(attribute='name') %}
+                      All
+                    {% else %}
+                      {{ user.voucher_types | map(attribute='name') | join(', ') }}
+                    {% endif %}
+                  </td>
+                  <td>{{ user.created_at | local_time }}</td>
+                  <td class="kebab-menu">
+                    <div class="dropdown">
+                      <i
+                        class="bi bi-three-dots-vertical"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      ></i>
+                      <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                          <a class="dropdown-item" href="#"> Edit </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" hx-get="#"> View Actions </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block style %}
+  <style>
+    .user-row {
+      cursor: pointer;
+    }
+
+    .user-row .dots {
+      pointer-events: auto;
+    }
+
+    .user-table {
+      width: 100%;
+      border-collapse: collapse;
+      max-height: 100%;
+    }
+
+    .user-table th,
+    .user-table td {
+      padding: 0.5rem; /* uniform padding */
+      vertical-align: middle;
+      overflow-wrap: break-word; /* wrap long words */
+      word-break: break-word;
+      white-space: normal; /* allow line breaks */
+      border-bottom: 1px solid #dee2e6; /* subtle row separation */
+    }
+
+    .user-table thead th {
+      position: sticky;
+      top: 0;
+      background-color: #f8f9fa;
+      z-index: 2;
+      background-color: white;
+      font-weight: normal;
+      text-align: center; /* center header text for better alignment */
+    }
+
+    .user-table tbody td {
+      text-align: center; /* default center alignment */
+      vertical-align: middle;
+    }
+
+    .user-table td {
+      overflow: visible;
+      white-space: nowrap;
+    }
+    .user-table tbody tr.active-row td,
+    .user-table tbody tr:focus td {
+      font-weight: normal;
+      background-color: #eaeaea; /* light grsy background */
+      transition: background-color 0.25s ease-in-out;
+      outline: none;
+      vertical-align: middle;
+    }
+
+    .user-row:focus {
+      outline: none;
+    }
+
+    .user-row:hover:not(.active-row) {
+      background-color: #eaeaea;
+      cursor: pointer;
+    }
+
+    .kebab-menu {
+      position: relative;
+      overflow: visible;
+    }
+
+    .dropdown-menu {
+      z-index: 1000;
+    }
+
+    .nut-icon {
+      display: inline-block;
+      transform: rotate(90deg);
+      color: #595c5f;
+    }
+  </style>
+{% endblock %}

@@ -21,6 +21,11 @@
             >
               Vouchers
             </a>
+            {% set role_codes = current_user.roles | map(attribute='code') | list %}
+            {% if 'admin' in role_codes %}
+              <a href="{{ url_for('admin.users') }}" 
+              class="btn btn-outline-secondary {{ 'active' if request.endpoint == 'admin.users' else '' }}"> Users </a>
+            {% endif %}
           </div>
         </div>
 
