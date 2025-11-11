@@ -23,6 +23,7 @@
                 <th>Roles</th>
                 <th>Assigned Vouchers</th>
                 <th>Created</th>
+                <th>Status</th>
                 <th class="nut-col"><i class="nut-icon bi bi-nut fs-5"></i></th>
               </tr>
             </thead>
@@ -40,6 +41,13 @@
                     {% endif %}
                   </td>
                   <td>{{ user.created_at | local_time }}</td>
+                  <td>
+                    {% if user.is_online %}
+                      <span class="badge bg-success">Online</span>
+                    {% else %}
+                      <span class="badge bg-secondary">Offline</span>
+                    {% endif %}
+                  </td>
                   <td class="kebab-menu">
                     <div class="dropdown">
                       <i
