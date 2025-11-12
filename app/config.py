@@ -3,7 +3,7 @@ import os
 
 
 def get_config():
-    match os.getenv("FLASK_ENV"):
+    match os.getenv("FLASK_ENV", "development"):
         case "production":
             return ProductionConfig
         case "testing":

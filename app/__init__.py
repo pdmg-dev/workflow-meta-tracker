@@ -5,7 +5,7 @@ from scripts.seed_all import seed_all
 
 from .blueprints import admin_bp, auth_bp, tracker_bp, voucher_bp
 from .config import get_config
-from .extensions import bcrypt, db, login_manager, migrate
+from .extensions import bcrypt, db, login_manager, migrate, socketio
 from .utils import filters
 
 
@@ -22,6 +22,7 @@ def create_app(config_class=None):
     bcrypt.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
+    socketio.init_app(app)
 
     # Configure extensions
     login_manager.login_view = "auth.login"
@@ -38,6 +39,8 @@ def create_app(config_class=None):
     app.jinja_env.filters["short_name"] = filters.name_shortener
 
     # Register event listeners
+    from app.sockets import presence  # noqa: F401
+
     from .utils import ref_number  # noqa: F401
 
     # Application Context

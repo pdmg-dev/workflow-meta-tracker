@@ -1,7 +1,4 @@
 # app/blueprints/users/models.py
-
-from datetime import datetime, timedelta, timezone
-
 from flask_login import UserMixin
 from sqlalchemy import func
 
@@ -31,6 +28,7 @@ class User(db.Model, UserMixin):
 
     last_login = db.Column(db.DateTime(timezone=True))
     last_logout = db.Column(db.DateTime(timezone=True))
+    is_online = db.Column(db.Boolean, default=False)
 
     roles = db.relationship("Role", secondary=user_roles, back_populates="users")
     voucher_types = db.relationship("VoucherType", secondary=user_voucher_types, back_populates="users")
@@ -51,24 +49,6 @@ class User(db.Model, UserMixin):
 
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password_hash, password)
-
-    @property
-    def is_online(self):
-        if not self.last_login:
-            return False
-
-        # Normalize timestamps
-        last_login = self.last_login
-        last_logout = self.last_logout
-        if last_login.tzinfo is None:
-            last_login = last_login.replace(tzinfo=timezone.utc)
-        if last_logout and last_logout.tzinfo is None:
-            last_logout = last_logout.replace(tzinfo=timezone.utc)
-
-        if not last_logout or last_login > last_logout:
-            now = datetime.now(timezone.utc)
-            return (now - last_login) < timedelta(hours=12)
-        return False
 
 
 role_voucher_types = db.Table(

@@ -29,7 +29,7 @@
             </thead>
             <tbody>
               {% for user in users %}
-                <tr class="user-row">
+                <tr class="user-row" data-user-id="{{ user.id }}">
                   <td>{{ user.full_name }}</td>
                   <td>{{ user.username }}</td>
                   <td>{{ user.roles | map(attribute='name') | join(', ') }}</td>
@@ -41,13 +41,15 @@
                     {% endif %}
                   </td>
                   <td>{{ user.created_at | local_time }}</td>
-                  <td>
+
+                  <td class="status-badge">
                     {% if user.is_online %}
                       <span class="badge bg-success">Online</span>
                     {% else %}
                       <span class="badge bg-secondary">Offline</span>
                     {% endif %}
                   </td>
+
                   <td class="kebab-menu">
                     <div class="dropdown">
                       <i
